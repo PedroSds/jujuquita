@@ -1,10 +1,15 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
+  "trailingSlash": false,
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "functions": {
+    "api/admin-page.js": { "includeFiles": "jujuadmin/index.html" }
+  },
   "rewrites": [
-    { "source": "/jujuadmin", "destination": "/jujuadmin/index.html" }
+    { "source": "/jujuadmin", "destination": "/api/admin-page" },
+    { "source": "/jujuadmin/index.html", "destination": "/api/admin-page" }
   ],
   "headers": [
     {

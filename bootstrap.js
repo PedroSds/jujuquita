@@ -14,6 +14,8 @@ function loadScript(src) {
 const loginForm = document.querySelector('#admin-login');
 if (loginForm) {
   const loginScreen = document.querySelector('#login-screen');
+  const sidebar = document.querySelector('.sidebar');
+  const workspace = document.querySelector('.workspace');
   const submit = loginForm.querySelector('button');
   const feedback = document.querySelector('#login-status');
   const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('juju-admin') : null;
@@ -22,8 +24,9 @@ if (loginForm) {
     await loadScript('admin.js');
     await loadScript('admin-enhancements.js');
     loginScreen.hidden = true;
-    document.querySelector('.sidebar').hidden = false;
-    document.querySelector('.workspace').hidden = false;
+    sidebar.hidden = workspace.hidden = false;
+    sidebar.inert = workspace.inert = false;
+    document.body.dataset.adminEntry = 'ready';
   }
   loginForm.onsubmit = async event => {
     event.preventDefault();
@@ -31,6 +34,8 @@ if (loginForm) {
     submit.disabled = true;
     feedback.textContent = 'Entrando…';
     try {
+      await startup;
+      if (loginScreen.hidden) return;
       const catalog = await database.login(loginForm.elements.password.value);
       loginForm.reset();
       await showAdmin(catalog);
@@ -52,14 +57,11 @@ if (loginForm) {
     database.clearSession();
     if (loginScreen.hidden) location.reload();
   };
-  submit.disabled = true;
-  database.restoreAdmin().then(catalog => {
+  const startup = database.restoreAdmin().then(catalog => {
     if (catalog) return showAdmin(catalog);
   }).catch(error => { feedback.textContent = error.message; })
     .finally(() => {
-      loginScreen.removeAttribute('aria-busy');
-      if (!loginScreen.hidden) loginForm.hidden = false;
-      submit.disabled = false;
+      if (!loginScreen.hidden) document.body.dataset.adminEntry = 'login';
     });
 } else {
   Promise.all([database.readCatalog(), database.cart()]).then(async ([catalog, bag]) => {

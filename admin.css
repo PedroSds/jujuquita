@@ -15,7 +15,7 @@
 }
 * { box-sizing:border-box }
 body { margin:0; min-height:100vh; display:grid; grid-template-columns:242px minmax(0,1fr); background:var(--wash); color:var(--ink); font:700 15px/1.5 Nunito,system-ui,sans-serif }
-html:has(#login-screen:not([hidden])) { overflow:hidden; }
+html:has([data-admin-entry=login]) { overflow:hidden; }
 #login-screen {
   position:fixed;
   inset:0;
@@ -26,6 +26,29 @@ html:has(#login-screen:not([hidden])) { overflow:hidden; }
   overscroll-behavior:contain;
   padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));
   background:radial-gradient(ellipse at 18% 90%,#f9d9e8,transparent 48%),radial-gradient(ellipse at 85% 0%,var(--sky),transparent 50%),var(--cream);
+}
+[data-admin-entry=restore] #login-screen { display:none; }
+[data-admin-entry=restore] .sidebar[hidden] { display:flex!important; }
+[data-admin-entry=restore] .workspace[hidden] { display:block!important; }
+.admin-startup { display:none; }
+[data-admin-entry=restore] #title::before {
+  content:'';
+  display:block;
+  width:clamp(140px,28vw,275px);
+  height:37px;
+  border-radius:9px;
+  background:#e8edf5;
+}
+[data-admin-entry=restore] .admin-startup {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  grid-template-rows:clamp(90px,17vw,140px) 105px;
+  gap:13px;
+}
+.admin-startup div { background:#fff; border:1px solid var(--line); border-radius:16px; }
+.admin-startup div:first-child { grid-column:1/-1; background:#e7f4fc; }
+@media(max-width:900px) {
+  [data-admin-entry=restore] .sidebar[hidden] { display:none!important; }
 }
 [hidden] { display:none!important }
 .sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%) }

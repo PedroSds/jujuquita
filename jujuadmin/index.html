@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#fff7f0"><title>Jujuquita | Administração</title><link rel="stylesheet" href="../admin.css?v=2"></head>
-<body>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#fff7f0"><title>Jujuquita | Administração</title><link rel="stylesheet" href="../admin.css?v=3"></head>
+<body data-admin-entry="login">
   <svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
     <symbol id="icon-overview" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.4"/><rect x="14" y="3" width="7" height="7" rx="1.4"/><rect x="3" y="14" width="7" height="7" rx="1.4"/><rect x="14" y="14" width="7" height="7" rx="1.4"/></symbol>
     <symbol id="icon-products" viewBox="0 0 24 24"><path d="M5 7h14l1.5 14h-17L5 7Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></symbol>
@@ -13,15 +13,15 @@
     <symbol id="icon-store" viewBox="0 0 24 24"><path d="M3 9l2-5h14l2 5v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0Zm2 5v6h14v-6m-9 6v-5h4v5"/></symbol>
     <symbol id="icon-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
   </svg>
-  <section id="login-screen" aria-busy="true">
-    <form id="admin-login" class="panel form-panel" aria-labelledby="login-title" hidden>
+  <section id="login-screen">
+    <form id="admin-login" class="panel form-panel" aria-labelledby="login-title">
       <div class="login-brand"><span class="brand-art" role="img" aria-label="Jujuquita"></span></div>
       <div><h1 id="login-title">Acesso à loja</h1><p>Entre para administrar a Jujuquita.</p></div>
       <label>Senha<input name="password" type="password" autocomplete="current-password" required></label>
       <button class="btn">Entrar</button><p role="status" id="login-status"></p>
     </form>
   </section>
-  <aside class="sidebar" hidden>
+  <aside class="sidebar" hidden inert>
     <div class="brand"><span class="brand-art" role="img" aria-label="Jujuquita"></span><small>Painel da loja</small></div>
     <nav aria-label="Menu administrativo">
       <button data-tab="overview">Visão geral</button>
@@ -36,7 +36,7 @@
     </nav>
     <div class="sidebar-footer"><button class="outline" id="logout">Sair</button></div>
   </aside>
-  <div class="workspace" hidden>
+  <div class="workspace" hidden inert>
     <header class="topbar">
       <span class="breadcrumb">Minha loja <span class="crumb" aria-hidden="true">/</span> <strong id="location"></strong></span>
       <span class="brand-art mobile-brand" role="img" aria-label="Jujuquita"></span>
@@ -45,6 +45,7 @@
     <main>
       <div class="page-heading"><div><h1 id="title" tabindex="-1"></h1><p id="description"></p></div><button class="btn" id="create" hidden></button></div>
       <p id="status" role="status"></p>
+      <div class="admin-startup" aria-hidden="true"><div></div><div></div><div></div></div>
       <div id="overview"></div>
       <section class="panel" id="list" hidden>
         <div class="toolbar catalog-filters"><input id="filter" type="search" aria-label="Buscar por nome" placeholder="Buscar por nome"><select id="category-filter" aria-label="Filtrar por categoria" hidden></select><select id="publication" aria-label="Filtrar por status"><option value="">Todos os status</option><option value="active">Publicados</option><option value="draft">Rascunhos</option></select></div>
@@ -85,5 +86,5 @@
       </details>
     </nav>
   </div>
-  <script src="../catalog.js"></script><script src="../database.js"></script><script src="../bootstrap.js?v=2"></script>
+  <script src="../catalog.js"></script><script src="../database.js"></script><script src="../bootstrap.js?v=3"></script>
 </body></html>

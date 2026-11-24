@@ -1,8 +1,7 @@
+const {readSessionCookie, readLegacyCookie, writeSessionCookie} = require('../lib/admin-cookie.cjs');
 const supabase = 'https://wzagqyfliroobrajqzxt.supabase.co';
 const key = 'sb_publishable_QI8gSRIEuRR5Ptorsxky1Q_2EpbQnIg';
 const adminEmail = process.env.JUJUQUITA_ADMIN_EMAIL || 'ateliejujuquita@gmail.com';
-const cookiePath = '/api/admin-session';
-const cookieLifetime = 8 * 60 * 60;
 
 function reply(res, status, body) {
   res.statusCode = status;
@@ -49,18 +48,16 @@ async function adminSession(req, res, secure) {
   if (req.headers.origin !== origin || !/^application\/json(?:;|$)/i.test(req.headers['content-type'] || '')) {
     return reply(res, 403, {message:'Origem não autorizada.'});
   }
-  const cookieName = secure ? '__Secure-juju_admin' : 'juju_admin_local';
-  const setCookie = (token, maxAge = cookieLifetime) => res.setHeader('Set-Cookie',
-    `${cookieName}=${token}; Path=${cookiePath}; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${secure ? '; Secure' : ''}`);
-  const refreshToken = (req.headers.cookie || '').split(';').map(value => value.trim())
-    .find(value => value.startsWith(cookieName + '='))?.slice(cookieName.length + 1);
+  const legacyToken = readLegacyCookie(req, secure);
+  const refreshToken = readSessionCookie(req, secure) || legacyToken;
+  const setCookie = token => writeSessionCookie(res, token, secure, Boolean(legacyToken));
   let data;
   try { data = await readBody(req); }
   catch { return reply(res, 400, {message:'Pedido inválido.'}); }
 
   try {
     if (data?.action === 'logout') {
-      setCookie('', 0);
+      setCookie('');
       if (refreshToken) {
         const response = await exchange('refresh_token', {refresh_token:refreshToken});
         if (response.ok) {
@@ -85,7 +82,7 @@ async function adminSession(req, res, secure) {
       if (response.status === 429 || response.status >= 500) {
         return reply(res, 503, {message:'O acesso está temporariamente indisponível. Tente novamente.'});
       }
-      if (!login) setCookie('', 0);
+      if (!login) setCookie('');
       return reply(res, 401, login ? {message:'Senha incorreta. Confira e tente novamente.'} : {code:'session_missing'});
     }
     const session = await response.json();
@@ -95,7 +92,7 @@ async function adminSession(req, res, secure) {
     if (!membership.ok) return reply(res, 503, {message:'Não foi possível verificar o acesso ao painel.'});
     const admins = await membership.json();
     if (!admins.length) {
-      setCookie('', 0);
+      setCookie('');
       return reply(res, 403, {message:'Acesso administrativo não autorizado.'});
     }
     setCookie(session.refresh_token);
