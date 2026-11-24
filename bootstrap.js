@@ -13,6 +13,7 @@ function loadScript(src) {
 
 const loginForm = document.querySelector('#admin-login');
 if (loginForm) {
+  const loginScreen = document.querySelector('#login-screen');
   const submit = loginForm.querySelector('button');
   const feedback = document.querySelector('#login-status');
   const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('juju-admin') : null;
@@ -20,7 +21,7 @@ if (loginForm) {
     initialCatalog = catalog;
     await loadScript('admin.js');
     await loadScript('admin-enhancements.js');
-    loginForm.hidden = true;
+    loginScreen.hidden = true;
     document.querySelector('.sidebar').hidden = false;
     document.querySelector('.workspace').hidden = false;
   }
@@ -49,14 +50,17 @@ if (loginForm) {
   if (channel) channel.onmessage = event => {
     if (event.data !== 'signed-out') return;
     database.clearSession();
-    if (loginForm.hidden) location.reload();
+    if (loginScreen.hidden) location.reload();
   };
   submit.disabled = true;
-  submit.textContent = 'Verificando sessão…';
   database.restoreAdmin().then(catalog => {
     if (catalog) return showAdmin(catalog);
   }).catch(error => { feedback.textContent = error.message; })
-    .finally(() => { submit.textContent = 'Entrar'; submit.disabled = false; });
+    .finally(() => {
+      loginScreen.removeAttribute('aria-busy');
+      if (!loginScreen.hidden) loginForm.hidden = false;
+      submit.disabled = false;
+    });
 } else {
   Promise.all([database.readCatalog(), database.cart()]).then(async ([catalog, bag]) => {
     initialCatalog = catalog;
