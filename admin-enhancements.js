@@ -113,8 +113,16 @@ window.addEventListener('beforeunload', event => {
   if (editorDialog.open && editorDirty) { event.preventDefault(); event.returnValue = ''; }
 });
 editorDialog.addEventListener('cancel', event => {
-  if (editorBusy || (editorDirty && !confirm('Descartar as alterações deste cadastro?'))) event.preventDefault();
+  event.preventDefault();
+  closeEditor();
 });
+function confirmHideCategory(plural = false) {
+  return confirmAction({
+    title:plural ? 'Retirar categorias da vitrine?' : 'Retirar categoria da vitrine?',
+    description:'As peças saem da coleção. Os produtos publicados em destaque continuam na página inicial.',
+    label:plural ? 'Retirar categorias' : 'Retirar categoria'
+  });
+}
 function enhanceEditor(item) {
   editorDirty = false;
   if (item.id) {
@@ -131,7 +139,7 @@ function enhanceEditor(item) {
     const archive = $admin('#archive');
     if (archive) archive.onclick=async()=>{
       if(editorBusy)return;
-      if(tab==='categories' && item.active && !confirm('Retirar a categoria oculta seus produtos na coleção. Os destaques publicados continuam na página inicial. Continuar?'))return;
+      if(tab==='categories' && item.active && !await confirmHideCategory())return;
       const next=structuredClone(catalog);
       next[tab].find(record=>record.id===item.id).active=!item.active;
       if(await save(next)){editorDialog.close();draw();}
@@ -260,7 +268,12 @@ function enhanceSettings() {
       if (!['products','categories','highlights'].every(key => Array.isArray(imported[key])) ||
           imported.products.some(item => !Number.isInteger(item.id) || typeof item.name !== 'string' || !Number.isInteger(item.price) || !Array.isArray(item.sizes)) ||
           imported.categories.some(item => !Number.isInteger(item.id) || typeof item.name !== 'string')) throw Error();
-      if (!confirm('Substituir o catálogo atual por este backup?')) return;
+      if (!await confirmAction({
+        title:'Restaurar este backup?',
+        description:'Os produtos, categorias, destaques e configurações atuais serão substituídos pelos dados do arquivo.',
+        label:'Restaurar backup',
+        destructive:true
+      })) return;
       if (await save(normalizeCatalog(imported))) {
         settings.elements.whatsapp.value = catalog.whatsapp || '';
         for (const [field,value] of Object.entries(catalog.settings)) {
@@ -360,6 +373,7 @@ async function moveRecord(id, end) {
   }
 }
 document.addEventListener('click',async event=>{
+  if (confirmDialog.contains(event.target)) return;
   document.querySelectorAll('.record-actions[open]').forEach(menu=>{
     if(!menu.contains(event.target)) menu.open=false;
   });
@@ -377,8 +391,18 @@ document.addEventListener('click',async event=>{
       status.textContent='Mova os produtos vinculados para outra categoria antes de excluir.';
       return;
     }
-    const prompt=tab==='highlights' ? `Excluir o destaque de “${record.name}”?` : `Excluir “${record.name}”?`;
-    if(!confirm(prompt))return;
+    const heading = tab === 'highlights' ? 'Remover destaque?' : tab === 'products' ? 'Excluir produto?' : 'Excluir categoria?';
+    const description = {
+      highlights:`“${record.name}” sairá dos Destaques da página inicial. O produto continuará no catálogo.`,
+      products:`“${record.name}” será removido do catálogo e da vitrine.`,
+      categories:`“${record.name}” será removida da lista de categorias.`
+    };
+    if(!await confirmAction({
+      title:heading,
+      description:description[tab],
+      label: tab === 'highlights' ? 'Remover destaque' : tab === 'products' ? 'Excluir produto' : 'Excluir categoria',
+      destructive:true
+    }))return;
     const next=structuredClone(catalog);
     const affected=tab==='products' ? ['products','highlights'] : [tab];
     affected.forEach(kind=>{
@@ -394,7 +418,7 @@ document.addEventListener('click',async event=>{
   if(!button.dataset.bulkAction)return;
   const ids=[...document.querySelectorAll('[data-bulk]:checked')].map(input=>Number(input.dataset.bulk));
   if(!ids.length){status.textContent='Selecione pelo menos um cadastro.';return;}
-  if(tab==='categories' && button.dataset.bulkAction==='hide' && !confirm('Os produtos das categorias selecionadas saem da coleção. Os destaques publicados continuam na página inicial. Continuar?'))return;
+  if(tab==='categories' && button.dataset.bulkAction==='hide' && !await confirmHideCategory(true))return;
   const next=structuredClone(catalog);
   next[tab].forEach(item=>{if(ids.includes(item.id))item.active=button.dataset.bulkAction==='publish';});
   if(await save(next))drawRecords();

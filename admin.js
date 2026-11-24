@@ -32,6 +32,29 @@ function nextRecordId(data, kind) {
 }
 const status = document.querySelector('#status');
 const editorDialog = $admin('#editor-dialog');
+const confirmDialog = $admin('#confirm-dialog');
+function confirmAction({title, description, label, destructive = false}) {
+  if (confirmDialog.open) return Promise.resolve(false);
+  $admin('#confirm-title').textContent = title;
+  $admin('#confirm-description').textContent = description;
+  $admin('#confirm-action').textContent = label;
+  confirmDialog.classList.toggle('is-destructive', destructive);
+  confirmDialog.returnValue = '';
+  return new Promise(resolve => {
+    confirmDialog.addEventListener('close', () => resolve(confirmDialog.returnValue === 'confirm'), {once:true});
+    confirmDialog.showModal();
+  });
+}
+async function closeEditor() {
+  if (editorBusy) return;
+  if (editorDirty && !await confirmAction({
+    title:'Descartar alterações?',
+    description:'As alterações feitas neste cadastro serão perdidas.',
+    label:'Descartar alterações',
+    destructive:true
+  })) return;
+  editorDialog.close();
+}
 function report(message) {
   (editorDialog.open ? $admin('#form-status') : status).textContent = message;
 }
@@ -198,7 +221,7 @@ document.addEventListener('click', event => {
   }
   if (button.dataset.edit) openEditor(Number(button.dataset.edit));
   if (button.id === 'create') openEditor();
-  if (button.id === 'cancel' && !editorBusy && (!editorDirty || confirm('Descartar as alterações deste cadastro?'))) editorDialog.close();
+  if (button.id === 'cancel') closeEditor();
 });
 $admin('#filter').addEventListener('input', drawRecords);
 $admin('#publication').addEventListener('change', drawRecords);

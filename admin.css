@@ -131,6 +131,22 @@ td:last-child { text-align:right }
 dialog { width:min(560px,calc(100% - 24px)); max-height:92dvh; overflow:auto; padding:0; border:1px solid var(--line); border-radius:19px; color:var(--ink); background:#fff; box-shadow:0 20px 80px #10295a40; scrollbar-width:none; overscroll-behavior:contain }
 dialog::-webkit-scrollbar { display:none }
 dialog::backdrop { background:#10295a75 }
+#confirm-dialog { width:min(420px,calc(100% - 28px)); border-radius:22px; }
+#confirm-dialog[open] { animation:confirm-appear .16s ease-out; }
+.confirm-card { gap:16px; padding:clamp(18px,5vw,26px); }
+.confirm-icon { display:grid; place-items:center; width:46px; height:46px; border-radius:14px; background:#eaf6fd; color:#265a7c; }
+.confirm-icon .icon { width:25px; height:25px; }
+.is-destructive .confirm-icon { background:var(--petal); color:var(--action); }
+.confirm-copy { display:grid; gap:7px; overflow-wrap:anywhere; }
+.confirm-copy h2 { font-size:22px; }
+.confirm-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; margin-top:4px; }
+.confirm-actions button { min-height:46px; }
+@keyframes confirm-appear {
+  from { transform:translateY(6px); opacity:0; }
+  to { transform:translateY(0); opacity:1; }
+}
+@media(max-width:420px) { .confirm-actions button { flex:1 1 auto; } }
+@media(prefers-reduced-motion:reduce) { #confirm-dialog[open] { animation:none; } }
 form { display:grid; gap:13px }
 form label { display:grid; gap:4px; font-weight:800 }
 form .btn { justify-self:start }

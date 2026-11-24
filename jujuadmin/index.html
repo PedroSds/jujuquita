@@ -51,6 +51,21 @@
       </section>
       <form class="panel form-panel" id="settings" hidden><h2>WhatsApp para pedidos</h2><p>O cliente vai abrir uma conversa neste número com o pedido preenchido.</p><label>WhatsApp com DDI e DDD<input name="whatsapp" type="tel" placeholder="55 + DDD + número"></label><button class="btn">Salvar WhatsApp</button></form>
       <dialog id="editor-dialog"><form id="editor"></form></dialog>
+      <dialog id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-description">
+        <form method="dialog" class="confirm-card">
+          <span class="confirm-icon" aria-hidden="true">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4m0 4h.01"></path></svg>
+          </span>
+          <div class="confirm-copy">
+            <h2 id="confirm-title"></h2>
+            <p id="confirm-description"></p>
+          </div>
+          <div class="confirm-actions">
+            <button type="submit" value="cancel" class="outline" autofocus>Cancelar</button>
+            <button type="submit" value="confirm" class="btn" id="confirm-action"></button>
+          </div>
+        </form>
+      </dialog>
     </main>
     <nav class="mobile-nav" aria-label="Menu administrativo no celular">
       <button data-tab="overview">Início</button>
