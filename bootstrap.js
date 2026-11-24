@@ -13,27 +13,50 @@ function loadScript(src) {
 
 const loginForm = document.querySelector('#admin-login');
 if (loginForm) {
+  const submit = loginForm.querySelector('button');
+  const feedback = document.querySelector('#login-status');
+  const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('juju-admin') : null;
+  async function showAdmin(catalog) {
+    initialCatalog = catalog;
+    await loadScript('admin.js');
+    await loadScript('admin-enhancements.js');
+    loginForm.hidden = true;
+    document.querySelector('.sidebar').hidden = false;
+    document.querySelector('.workspace').hidden = false;
+  }
   loginForm.onsubmit = async event => {
     event.preventDefault();
-    const submit = loginForm.querySelector('button');
-    const feedback = document.querySelector('#login-status');
+    if (submit.disabled) return;
     submit.disabled = true;
     feedback.textContent = 'Entrando…';
     try {
-      initialCatalog = await database.login(loginForm.elements.password.value);
+      const catalog = await database.login(loginForm.elements.password.value);
       loginForm.reset();
-      await loadScript('admin.js');
-      await loadScript('admin-enhancements.js');
-      loginForm.hidden = true;
-      document.querySelector('.sidebar').hidden = false;
-      document.querySelector('.workspace').hidden = false;
+      await showAdmin(catalog);
     } catch (error) { feedback.textContent = error.message; }
     finally { submit.disabled = false; }
   };
   const logout = async () => {
-    try { await database.logout(); } finally { location.reload(); }
+    try {
+      await database.logout();
+      channel?.postMessage('signed-out');
+      location.reload();
+    } catch {
+      document.querySelector('#status').textContent = 'Não foi possível sair do painel. Tente novamente.';
+    }
   };
   document.querySelectorAll('#logout, [data-logout]').forEach(button => { button.onclick = logout; });
+  if (channel) channel.onmessage = event => {
+    if (event.data !== 'signed-out') return;
+    database.clearSession();
+    if (loginForm.hidden) location.reload();
+  };
+  submit.disabled = true;
+  submit.textContent = 'Verificando sessão…';
+  database.restoreAdmin().then(catalog => {
+    if (catalog) return showAdmin(catalog);
+  }).catch(error => { feedback.textContent = error.message; })
+    .finally(() => { submit.textContent = 'Entrar'; submit.disabled = false; });
 } else {
   Promise.all([database.readCatalog(), database.cart()]).then(async ([catalog, bag]) => {
     initialCatalog = catalog;

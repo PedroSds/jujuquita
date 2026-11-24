@@ -1,13 +1,12 @@
 const database = (() => {
   const url = 'https://wzagqyfliroobrajqzxt.supabase.co';
   const key = 'sb_publishable_QI8gSRIEuRR5Ptorsxky1Q_2EpbQnIg';
-  const adminEmail = 'ateliejujuquita@gmail.com';
   let session;
   let revision;
   let refresh;
   async function request(path, { method = 'GET', body, authenticated = false, mediaType, prefer } = {}) {
     if (authenticated && session && session.deadline < Date.now() + 30000) {
-      refresh ??= authenticate('refresh_token', { refresh_token: session.refresh_token }).finally(() => { refresh = null; });
+      refresh ??= renewSession().finally(() => { refresh = null; });
       await refresh;
     }
     if (authenticated && !session) throw Error('Entre novamente no painel.');
@@ -34,18 +33,30 @@ const database = (() => {
     }
     return result;
   }
-  async function authenticate(grant, values) {
-    let result;
-    try { result = await request('/auth/v1/token?grant_type=' + grant, { method:'POST', body:values }); }
-    catch (error) {
-      if (error.code === 'invalid_credentials') throw Error('Senha incorreta. Confira e tente novamente.');
-      if (grant === 'refresh_token' && ['refresh_token_not_found','refresh_token_already_used'].includes(error.code)) {
-        session = null;
-        throw Error('Sua sessão expirou. Entre novamente no painel.');
-      }
-      throw error;
-    }
-    session = { ...result, deadline: Date.now() + result.expires_in * 1000 };
+  async function adminSession(action, password) {
+    const send = async () => {
+      const response = await fetch('/api/admin-session', {
+        method:'POST', credentials:'same-origin', cache:'no-store',
+        headers:{'Content-Type':'application/json'}, body:JSON.stringify({action,password}),
+        signal:AbortSignal.timeout(18000)
+      });
+      const result = await response.json().catch(() => null);
+      if (response.status === 401 && action === 'restore') return null;
+      if (!response.ok) throw Error(result?.message || 'Não foi possível acessar o painel. Tente novamente.');
+      if (action !== 'logout' && !result?.access_token) throw Error('Não foi possível acessar o painel. Tente novamente.');
+      return result;
+    };
+    return navigator.locks ? navigator.locks.request('juju-admin-session', send) : send();
+  }
+  async function renewSession(action = 'restore', password) {
+    const result = await adminSession(action, password);
+    session = result && {access_token:result.access_token, deadline:Date.now() + result.expires_in * 1000};
+    return Boolean(session);
+  }
+  async function loadAdminCatalog() {
+    const snapshot = await readAdminSnapshot();
+    revision = snapshot.revision;
+    return snapshot.catalog;
   }
   const read = (table, query, authenticated) => request('/rest/v1/' + table + '?' + query, { authenticated });
   async function readAll(table, query, authenticated) {
@@ -167,23 +178,21 @@ const database = (() => {
   return {
     readCatalog, saveCatalog, saveCatalogEdit, cart,
     async login(password) {
-      try {
-        await authenticate('password',{email:adminEmail,password});
-        const membership = await read('juju_admins','select=user_id',true);
-        if (!membership.length) throw Error('Acesso administrativo não autorizado.');
-        const snapshot = await readAdminSnapshot();
-        revision = snapshot.revision;
-        return snapshot.catalog;
-      } catch (error) { session = null; throw error; }
+      await renewSession('login',password);
+      return loadAdminCatalog();
+    },
+    async restoreAdmin() {
+      return await renewSession() ? loadAdminCatalog() : null;
     },
     async password(current, password) {
-      await authenticate('password', {email:adminEmail,password:current});
+      await renewSession('login',current);
       await request('/auth/v1/user',{method:'PUT',authenticated:true,body:{password}});
     },
     async logout() {
-      try { await request('/auth/v1/logout?scope=local',{method:'POST',authenticated:true}); }
-      finally { session = null; }
+      await adminSession('logout');
+      session = null;
     },
+    clearSession:() => { session = null; },
     orders:()=>read('juju_orders','order=created_at.desc&limit=100',true),
     async order(id, message) {
       try { await request('/rest/v1/juju_orders',{method:'POST',body:{id,message},prefer:'return=minimal'}); }

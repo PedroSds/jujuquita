@@ -15,7 +15,14 @@
 }
 * { box-sizing:border-box }
 body { margin:0; min-height:100vh; display:grid; grid-template-columns:242px minmax(0,1fr); background:var(--wash); color:var(--ink); font:700 15px/1.5 Nunito,system-ui,sans-serif }
-body:has(#admin-login:not([hidden])) { grid-template-columns:1fr; background:radial-gradient(ellipse at 18% 90%,#f9d9e8,transparent 48%),radial-gradient(ellipse at 85% 0%,var(--sky),transparent 50%),var(--cream) }
+body:has(#admin-login:not([hidden])) {
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  min-height:100dvh;
+  place-items:center;
+  padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));
+  background:radial-gradient(ellipse at 18% 90%,#f9d9e8,transparent 48%),radial-gradient(ellipse at 85% 0%,var(--sky),transparent 50%),var(--cream);
+}
 [hidden] { display:none!important }
 .sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%) }
 h1,h2,h3,p { margin:0 }
@@ -122,7 +129,7 @@ td:last-child { text-align:right }
 #orders-panel details+details { border-top:1px solid var(--line); padding-top:12px; margin-top:12px }
 #orders-panel summary { font-weight:900 }
 #orders-panel pre { font:inherit; overflow-wrap:anywhere }
-#admin-login { align-self:center; justify-self:center; width:min(420px,calc(100% - 28px)); padding:clamp(20px,5vw,34px); gap:18px; border-radius:22px; margin:18px 0 }
+#admin-login { width:min(420px,100%); padding:clamp(20px,5vw,34px); gap:18px; border-radius:22px; margin:0 }
 #admin-login p:not(:empty) { margin-top:5px }
 #admin-login .btn { width:100% }
 .login-brand { display:grid; place-items:center; padding-bottom:10px }
@@ -209,7 +216,6 @@ form .btn { justify-self:start }
   .mobile-nav>button,.mobile-nav summary { display:flex; min-height:53px; align-items:center; justify-content:center; flex-direction:column; gap:2px; color:var(--muted); font-size:12px; font-weight:900; border:0; border-radius:11px; list-style:none; background:#fff }
   .mobile-nav>[aria-pressed=true],.mobile-nav .selected summary,.mobile-nav [open] summary { background:var(--petal); color:var(--action) }
   .mobile-menu-panel { position:absolute; display:grid; inset:auto 8px calc(100% + 7px); max-width:310px; margin-left:auto; padding:7px; border:1px solid var(--line); border-radius:15px; background:#fff; box-shadow:0 9px 28px #10295a25 }
-  #admin-login { min-height:0; margin:clamp(18px,12vh,100px) auto 18px }
 }
 @media(max-width:620px) {
   main { padding-inline:12px; padding-top:17px }
