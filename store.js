@@ -112,7 +112,10 @@ function showBag() {
       ${number ? `<p><a class="btn" href="https://wa.me/${number}?text=${encodeURIComponent(message)}" target="_blank" rel="noopener">Enviar pedido pelo WhatsApp</a></p>` : '<p>O WhatsApp da loja ainda não foi configurado.</p>'}` : ''}
     <button class="outline" data-collection>Continuar comprando</button>`);
 }
-if ($('#categories')) $('#categories').innerHTML = categories.map(item => `<button class="category" data-category="${item.id}" aria-label="${escapeHtml(item.name)}">${picture(item)}${item.show_name === false && item.image ? '' : `<span class="category-label">${escapeHtml(item.name)}</span>`}</button>`).join('');
+if ($('#categories')) $('#categories').innerHTML = categories.map(item => {
+  const imageOnly = item.show_name === false && Boolean(item.image);
+  return `<button class="category${imageOnly ? ' category-art' : ''}" data-category="${item.id}" aria-label="${escapeHtml(item.name)}">${picture(item)}${imageOnly ? '' : `<span class="category-label">${escapeHtml(item.name)}</span>`}</button>`;
+}).join('');
 document.querySelectorAll('[data-category-menu]').forEach(menu => menu.innerHTML = categories.map(categoryButton).join(''));
 const featuredIds = [...new Set(catalog.highlights.filter(item => item.active).map(item => item.product))];
 const highlights = featuredIds.map(id => products.find(product => product.id === id)).filter(Boolean);

@@ -55,6 +55,17 @@ input:focus, select:focus, textarea:focus {
 #categories .category-label {
   overflow-wrap: anywhere;
 }
+#categories .category-art {
+  background: transparent;
+  aspect-ratio: 1;
+  align-self: center;
+  border-radius: 0;
+}
+#categories .category-art .catalog-image {
+  width: 100%;
+  object-fit: contain;
+  border-radius: 0;
+}
 #categories{user-select:none} #categories.dragging{scroll-snap-type:none;cursor:grabbing} #categories.dragging .category{cursor:grabbing;transform:none}
 .featured-products{grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),220px));justify-content:center}.featured-products .product-photo{display:block;aspect-ratio:1}.featured-products .product-photo>.crop,.featured-products .product-photo>img{height:100%;width:100%;object-fit:cover}.featured-products .product p{font-weight:900}
 .collection-page{padding-block:44px 64px;min-height:55vh}.collection-page h1{font-size:clamp(32px,5vw,54px)}.collection-page .products{margin-top:24px}.collection-page .product-photo{aspect-ratio:1}.collection-page .product-photo>.crop,.collection-page .product-photo>img{height:100%;width:100%;object-fit:cover}
