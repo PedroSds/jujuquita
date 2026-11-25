@@ -12,6 +12,11 @@ const dialog = $('#modal');
 const params = new URLSearchParams(location.search);
 const categoryId = categories.find(item => item.id === Number(params.get('categoria')))?.id || 0;
 const searchTerm = params.get('busca')?.trim() || '';
+function matchesSearch(item, query) {
+  const category = catalog.categories.find(entry => entry.id === item.category);
+  const searchable = normalizeSearch([item.name, item.description, item.sku, category?.name, ...item.colors, ...item.sizes].join(' '));
+  return normalizeSearch(query).trim().split(/\s+/).every(term => searchable.includes(term));
+}
 let bag = initialBag.filter(row => row && Number.isInteger(row.id) && Number.isInteger(row.qty) && row.qty > 0 && row.qty <= 99 && typeof row.size === 'string');
 let savingBag = false;
 function updateBagCount() {
@@ -74,8 +79,7 @@ async function quickAdd(id) {
 function collection() {
   const page = $('#collection-page');
   if (!page) return;
-  const query = searchTerm.toLocaleLowerCase('pt-BR');
-  const visible = collectionProducts.filter(item => (!categoryId || categoryId === item.category) && item.name.toLocaleLowerCase('pt-BR').includes(query));
+  const visible = collectionProducts.filter(item => (!categoryId || categoryId === item.category) && matchesSearch(item, searchTerm));
   page.innerHTML = `<h1>Nossa coleção</h1>
     <div class="filters" aria-label="Categorias">${[{id:0,name:'Todos'}, ...categories].map(categoryButton).join('')}</div>
     ${searchTerm ? `<p>Resultados para “${escapeHtml(searchTerm)}” · <a href="colecao.html">Limpar busca</a></p>` : ''}
@@ -149,10 +153,74 @@ document.addEventListener('click', async event => {
 });
 $('.close').onclick = () => dialog.close();
 $('#bag').onclick = showBag;
-$('#search').addEventListener('keydown', event => {
-  if (event.key !== 'Enter') return;
-  openCollection(0, event.currentTarget.value.trim());
-});
+function enableSearchSuggestions() {
+  const input = $('#search');
+  const label = input.closest('.search');
+  const wrapper = document.createElement('div');
+  wrapper.className = 'search-field';
+  const panel = document.createElement('div');
+  panel.className = 'search-results';
+  panel.id = 'search-results';
+  panel.hidden = true;
+  panel.setAttribute('aria-label', 'Sugestões de produtos');
+  label.before(wrapper);
+  wrapper.append(label, panel);
+  input.setAttribute('aria-controls', panel.id);
+  input.setAttribute('aria-expanded', 'false');
+  input.setAttribute('autocomplete', 'off');
+  const close = () => {
+    panel.hidden = true;
+    input.setAttribute('aria-expanded', 'false');
+  };
+  const results = () => {
+    const query = input.value.trim();
+    if (!query) return [];
+    return products.filter(item => matchesSearch(item, query) && item.sizes.some(size => item.colors.some(color => stockFor(item, size, color) > 0)))
+      .sort((a,b) => Number(normalizeSearch(b.name).startsWith(normalizeSearch(query))) - Number(normalizeSearch(a.name).startsWith(normalizeSearch(query))));
+  };
+  const collectionLink = query => 'colecao.html' + (query ? '?' + new URLSearchParams({busca:query}) : '');
+  const render = () => {
+    if (!input.value.trim()) { close(); return; }
+    const found = results();
+    const inCollection = found.some(item => collectionProducts.includes(item));
+    panel.innerHTML = found.length ? `
+      <p class="search-results-title">Produtos encontrados <span>${found.length}</span></p>
+      <div class="search-result-list">${found.slice(0,6).map(item => `
+        <a class="search-result-item" href="produto.html?id=${item.id}"><span class="search-result-photo">${picture(item)}</span>
+        <span><strong>${escapeHtml(item.name)}</strong><small>${money(salePrice(item))}</small></span><span class="search-result-arrow" aria-hidden="true">›</span></a>`).join('')}</div>
+      <a class="search-results-collection" href="${escapeHtml(collectionLink(inCollection ? input.value.trim() : ''))}">${inCollection ? 'Ver todos os resultados' : 'Explorar coleção'} <span aria-hidden="true">→</span></a>` :
+      `<div class="search-empty"><strong>Nenhuma peça encontrada</strong><p>Que tal descobrir outros encantos da Jujuquita?</p></div>
+      <a class="search-results-collection" href="colecao.html">Ver coleção <span aria-hidden="true">→</span></a>`;
+    panel.hidden = false;
+    input.setAttribute('aria-expanded', 'true');
+  };
+  input.addEventListener('input', render);
+  input.addEventListener('focus', render);
+  input.addEventListener('keydown', event => {
+    if (event.key === 'Escape') { close(); return; }
+    if (event.key === 'ArrowDown' && !panel.hidden) { event.preventDefault(); panel.querySelector('a')?.focus(); return; }
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    const found = results();
+    if (found.length && !found.some(item => collectionProducts.includes(item))) detail(found[0].id);
+    else openCollection(0, found.length ? input.value.trim() : '');
+  });
+  panel.addEventListener('keydown', event => {
+    const links = [...panel.querySelectorAll('a')];
+    const index = links.indexOf(document.activeElement);
+    if (event.key === 'Escape') { input.focus(); close(); }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const next = index + (event.key === 'ArrowDown' ? 1 : -1);
+      if (next < 0) input.focus();
+      else links[Math.min(next, links.length - 1)]?.focus();
+    }
+  });
+  wrapper.addEventListener('focusout', event => { if (!wrapper.contains(event.relatedTarget)) close(); });
+  document.addEventListener('pointerdown', event => { if (!wrapper.contains(event.target)) close(); });
+  if (document.activeElement === input) render();
+}
+enableSearchSuggestions();
 document.querySelectorAll('.contact').forEach(button => button.onclick = () => {
   const number = catalog.whatsapp;
   modal(/^[1-9]\d{9,14}$/.test(number) ? `<h2>Fale com a Jujuquita</h2><a class="btn" href="https://wa.me/${number}" target="_blank" rel="noopener">Abrir WhatsApp</a>` : '<h2>Fale com a Jujuquita</h2><p>O WhatsApp da loja ainda não foi configurado.</p>');

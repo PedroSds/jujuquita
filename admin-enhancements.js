@@ -161,7 +161,7 @@ function enhanceEditor(item) {
     badge.textContent = editor.elements.active.checked ? 'Publicado ao salvar' : 'Rascunho';
   };
   editor.querySelector('.photo-field').insertAdjacentHTML('afterend',
-    '<section class="product-gallery-field"><h3>Outros ângulos do produto</h3><p>Adicione até 4 fotos além da principal. Você poderá ajustar o recorte de cada uma.</p><label class="outline photo-picker">Adicionar fotos<input id="gallery-upload" type="file" multiple accept="image/png,image/jpeg,image/webp" aria-label="Adicionar fotos do produto"></label><small>PNG, JPEG ou WebP · recorte quadrado automático</small><div id="gallery-editor"></div><p id="gallery-status" role="status"></p></section>');
+    '<section class="product-gallery-field"><h3>Outros ângulos do produto</h3><p>Adicione até 4 fotos além da principal. Você poderá ajustar o recorte de cada uma.</p><label class="outline photo-picker">Adicionar fotos<input id="gallery-upload" type="file" multiple accept="image/png,image/jpeg,image/webp" aria-label="Adicionar fotos do produto"></label><small>PNG, JPEG ou WebP · enquadramento vertical 4:5</small><div id="gallery-editor"></div><p id="gallery-status" role="status"></p></section>');
   renderGallery();
   $admin('#gallery-upload').onchange = async event => {
     if (editorBusy) return;
@@ -326,13 +326,7 @@ drawRecords = () => {
   originalDrawRecords();
   const records=$admin('#records');
   if (tab === 'highlights') {
-    records.querySelectorAll('[data-highlight]').forEach(input=>{
-      const id=Number(input.dataset.highlight);
-      if (catalog.highlights.some(item=>item.product===id)) {
-        input.closest('td').insertAdjacentHTML('beforeend', ` <button type="button" class="outline delete-record" data-delete="${id}">Excluir destaque</button>`);
-      }
-    });
-    records.insertAdjacentHTML('beforeend','<div class="toolbar"><button type="button" class="outline" id="undo-change">Desfazer última alteração</button></div>');
+    if (previousCatalog) records.insertAdjacentHTML('beforeend',`<div class="toolbar bulk-toolbar"><button type="button" class="outline" id="undo-change" ${highlightPending ? 'disabled' : ''}>Desfazer última alteração</button></div>`);
     return;
   }
   const table = records.querySelector('table');
@@ -395,23 +389,23 @@ document.addEventListener('click',async event=>{
     return moveRecord(id,catalog[tab].findIndex(item=>item.id===id)+Number(button.dataset.step));
   }
   if(button.dataset.delete !== undefined) {
+    if(tab==='highlights') return;
     const id=Number(button.dataset.delete);
-    const record=tab==='highlights' ? catalog.products.find(item=>item.id===id) : catalog[tab].find(item=>item.id===id);
+    const record=catalog[tab].find(item=>item.id===id);
     if(!record)return;
     if(tab==='categories' && catalog.products.some(item=>item.category===id)){
       status.textContent='Mova os produtos vinculados para outra categoria antes de excluir.';
       return;
     }
-    const heading = tab === 'highlights' ? 'Remover destaque?' : tab === 'products' ? 'Excluir produto?' : 'Excluir categoria?';
+    const heading = tab === 'products' ? 'Excluir produto?' : 'Excluir categoria?';
     const description = {
-      highlights:`“${record.name}” sairá dos Destaques da página inicial. O produto continuará no catálogo.`,
       products:`“${record.name}” será removido do catálogo e da vitrine.`,
       categories:`“${record.name}” será removida da lista de categorias.`
     };
     if(!await confirmAction({
       title:heading,
       description:description[tab],
-      label: tab === 'highlights' ? 'Remover destaque' : tab === 'products' ? 'Excluir produto' : 'Excluir categoria',
+      label: tab === 'products' ? 'Excluir produto' : 'Excluir categoria',
       destructive:true
     }))return;
     const next=structuredClone(catalog);

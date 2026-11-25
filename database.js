@@ -156,8 +156,13 @@ const database = (() => {
     if (kind === 'products' && !latest.catalog.categories.some(category => category.id === draft.category)) {
       throw Error('A categoria escolhida foi removida. Reabra o cadastro com uma categoria disponível.');
     }
+    if (kind === 'highlights' && draft && !latest.catalog.products.some(product => product.id === draft.product)) {
+      throw Error('Este produto foi removido em outra aba.');
+    }
     const updated = structuredClone(latest.catalog);
-    if (index === -1) updated[kind].push(draft);
+    if (!draft) {
+      if (index !== -1) updated[kind].splice(index, 1);
+    } else if (index === -1) updated[kind].push(draft);
     else updated[kind][index] = draft;
     try { await saveCatalog(updated, latest.revision); }
     catch (error) {

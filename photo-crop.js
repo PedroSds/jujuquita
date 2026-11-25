@@ -10,12 +10,14 @@ function canvasBlob(canvas, type, quality) {
 
 async function compressedCrop(canvas) {
   const exportCanvas = document.createElement('canvas');
-  for (const size of [800, 640, 480]) {
-    exportCanvas.width = exportCanvas.height = size;
+  for (const width of [1200, 960, 800]) {
+    const height = width * 5 / 4;
+    exportCanvas.width = width;
+    exportCanvas.height = height;
     const ctx = exportCanvas.getContext('2d');
     ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, size, size);
-    ctx.drawImage(canvas, 0, 0, size, size);
+    ctx.fillRect(0, 0, width, height);
+    ctx.drawImage(canvas, 0, 0, width, height);
     for (const quality of [.9, .78, .64, .5]) {
       const blob = await canvasBlob(exportCanvas, 'image/jpeg', quality);
       if (blob && blob.size <= 500000) return readPhoto(blob);
@@ -40,17 +42,20 @@ async function cropProductPhoto(file, title) {
       const apply = cropDialog.querySelector('#crop-apply');
       const cancel = cropDialog.querySelector('#crop-cancel');
       const reset = cropDialog.querySelector('#crop-reset');
-      let side, x, y, drag, result = null, busy = false, error = null;
+      let overX, overY, x, y, drag, result = null, busy = false, error = null;
       cropDialog.querySelector('#crop-title').textContent = title;
       function draw() {
-        side = Math.min(photo.naturalWidth, photo.naturalHeight) / Number(zoom.value);
-        const maxX = photo.naturalWidth - side, maxY = photo.naturalHeight - side;
-        horizontal.disabled = maxX < .1;
-        vertical.disabled = maxY < .1;
-        x = maxX * Number(horizontal.value) / 100;
-        y = maxY * Number(vertical.value) / 100;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(photo, x, y, side, side, 0, 0, canvas.width, canvas.height);
+        const scale = Math.min(canvas.width/photo.naturalWidth, canvas.height/photo.naturalHeight) * Number(zoom.value);
+        const width = photo.naturalWidth * scale, height = photo.naturalHeight * scale;
+        overX = Math.max(0, width-canvas.width);
+        overY = Math.max(0, height-canvas.height);
+        horizontal.disabled = overX < .1;
+        vertical.disabled = overY < .1;
+        x = overX ? -overX * Number(horizontal.value) / 100 : (canvas.width-width)/2;
+        y = overY ? -overY * Number(vertical.value) / 100 : (canvas.height-height)/2;
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(photo, x, y, width, height);
       }
       function resetPosition() {
         zoom.value = 1;
@@ -63,15 +68,14 @@ async function cropProductPhoto(file, title) {
       cropDialog.oncancel = event => { if (busy) event.preventDefault(); };
       canvas.onpointerdown = event => {
         if (busy || drag || event.button !== 0) return;
-        drag = {id:event.pointerId, clientX:event.clientX, clientY:event.clientY, x, y, scale:side/canvas.clientWidth};
+        drag = {id:event.pointerId, clientX:event.clientX, clientY:event.clientY, x, y, scale:canvas.width/canvas.clientWidth};
         canvas.setPointerCapture(event.pointerId);
       };
       canvas.onpointermove = event => {
         if (busy || !drag || drag.id !== event.pointerId) return;
-        const maxX = photo.naturalWidth - side, maxY = photo.naturalHeight - side;
         const percent = (value, max) => max ? Math.max(0, Math.min(100, value * 100 / max)) : 50;
-        horizontal.value = percent(drag.x - (event.clientX - drag.clientX) * drag.scale, maxX);
-        vertical.value = percent(drag.y - (event.clientY - drag.clientY) * drag.scale, maxY);
+        horizontal.value = percent(-drag.x - (event.clientX - drag.clientX) * drag.scale, overX);
+        vertical.value = percent(-drag.y - (event.clientY - drag.clientY) * drag.scale, overY);
         draw();
       };
       canvas.onpointerup = canvas.onpointercancel = canvas.onlostpointercapture = () => { drag = null; };

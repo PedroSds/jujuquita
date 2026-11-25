@@ -43,7 +43,7 @@ function enhanceCollection() {
   function update() {
     const state=new FormData(controls);
     const filtered=collectionProducts.filter(item=>(!categoryId || item.category===categoryId) &&
-      normalizeSearch(item.name+' '+item.description).includes(normalizeSearch(searchTerm)) &&
+      matchesSearch(item,searchTerm) &&
       (!state.get('size') || item.sizes.includes(state.get('size'))) &&
       (!state.get('color') || item.colors.includes(state.get('color'))) &&
       (!state.get('max') || salePrice(item)<=Math.round(Number(state.get('max'))*100)));

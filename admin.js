@@ -3,6 +3,7 @@ let tab = 'overview';
 let selected = null;
 let previousCatalog;
 let editorBusy = false;
+let highlightPending = null;
 const titles = {overview:'Visão geral', categories:'Categorias', products:'Produtos', highlights:'Destaques', settings:'Configurações'};
 const descriptions = {
   overview:'Acompanhe seu catálogo e prepare a vitrine para receber pedidos.',
@@ -100,7 +101,7 @@ function draw() {
   if (tab === 'overview') {
     const firstStep = catalog.categories.length ? 'products' : 'categories';
     $admin('#overview').innerHTML = `<section class="overview-hero"><div><h2>${firstStep === 'categories' ? 'Comece pelo catálogo' : 'Cadastrar nova peça'}</h2><p>${firstStep === 'categories' ? 'Crie uma categoria para começar a cadastrar suas peças.' : 'Adicione fotos, preços e variações para publicar na vitrine.'}</p></div><button class="btn" data-new="${firstStep}">${firstStep === 'categories' ? 'Nova categoria' : 'Novo produto'}</button></section>
-    <div class="metrics">${Object.keys(singular).map(key => `<button class="metric" data-tab="${key}"><span class="metric-icon">${adminIcon(key)}</span><span class="metric-name">${titles[key]}</span><strong>${catalog[key].length}</strong><small>${catalog[key].filter(item => item.active).length} ${key === 'highlights' ? 'selecionados' : 'com status publicado'}</small></button>`).join('')}</div>
+    <div class="metrics">${Object.keys(singular).map(key => `<button class="metric" data-tab="${key}"><span class="metric-icon">${adminIcon(key)}</span><span class="metric-name">${titles[key]}</span><strong>${key === 'highlights' ? catalog[key].filter(item => item.active).length : catalog[key].length}</strong><small>${key === 'highlights' ? 'Produtos selecionados' : catalog[key].filter(item => item.active).length + ' com status publicado'}</small></button>`).join('')}</div>
     <div class="overview-links"><section class="panel overview-link">${adminIcon('orders')}<div><h2>Pedidos</h2><p>Consulte os pedidos preparados para WhatsApp.</p></div><button class="outline" data-tab="orders">Ver pedidos</button></section>
     <section class="panel overview-link">${adminIcon('settings')}<div><h2>WhatsApp da loja</h2><p>${catalog.whatsapp ? 'Número cadastrado para receber pedidos.' : 'Cadastre o número para receber pedidos.'}</p></div><button class="outline" data-tab="settings">Configurar</button></section></div>`;
   }
@@ -129,15 +130,18 @@ function drawRecords() {
   $admin('#records').innerHTML = items.length ? `<div class="table-wrap"><table role="table"><thead><tr role="row"><th scope="col">${tab === 'products' ? 'Produto' : 'Nome'}</th><th scope="col">Status</th><th scope="col">Ações</th></tr></thead><tbody role="rowgroup">${items.map(record => `<tr role="row"><td role="cell">${recordName(record)}</td><td role="cell"><span class="badge ${record.active ? 'active' : ''}">${record.active ? 'Publicado' : 'Rascunho'}</span></td><td role="cell"><div class="row-actions"><button class="outline" data-edit="${record.id}" aria-label="Editar ${escapeHtml(record.name)}">Editar</button></div></td></tr>`).join('')}</tbody></table></div>` : `<p class="empty">${empty}</p>`;
 }
 function drawHighlightProducts() {
-  const query = $admin('#filter').value.trim().toLocaleLowerCase('pt-BR');
+  const query = normalizeSearch($admin('#filter').value.trim());
   const publication = $admin('#publication').value;
   const featured = new Set(catalog.highlights.filter(item => item.active).map(item => item.product));
-  const products = catalog.products.filter(item => item.name.toLocaleLowerCase('pt-BR').includes(query) &&
+  const products = catalog.products.filter(item => normalizeSearch(item.name).includes(query) &&
     (!publication || featured.has(item.id) === (publication === 'active')));
-  $admin('#record-count').textContent = `${products.length} de ${catalog.products.length} produtos`;
+  $admin('#record-count').textContent = `${products.length} de ${catalog.products.length} produtos · ${featured.size} selecionados`;
   $admin('#records').innerHTML = products.length ? `<div class="table-wrap highlights-table"><table role="table"><thead><tr role="row"><th scope="col">Produto</th><th scope="col">Na página inicial</th></tr></thead><tbody role="rowgroup">${products.map(item => {
     const photo = item.image || item.box ? picture(item) : '<span>Sem foto</span>';
-    return `<tr role="row"><td role="cell"><div class="product-record"><div class="photo-preview product-thumb" aria-hidden="true">${photo}</div><div><strong>${escapeHtml(item.name)}</strong><br><small>${money(item.price)}${item.active ? '' : ' · Aguardando publicação'}</small></div></div></td><td role="cell"><label class="highlight-toggle"><input type="checkbox" data-highlight="${item.id}" ${featured.has(item.id) ? 'checked' : ''} aria-label="Destacar ${escapeHtml(item.name)}"> Em destaque</label></td></tr>`;
+    const chosen = featured.has(item.id);
+    const updating = highlightPending?.id === item.id;
+    const action = chosen ? 'Remover destaque' : 'Destacar produto';
+    return `<tr role="row" class="${chosen ? 'highlight-selected' : ''}"><td role="cell"><div class="product-record"><div class="photo-preview product-thumb" aria-hidden="true">${photo}</div><div><strong>${escapeHtml(item.name)}</strong><br><small>${money(item.price)}${item.active ? '' : ' · Aguardando publicação'}</small>${chosen ? '<span class="featured-status">Em destaque</span>' : ''}</div></div></td><td role="cell"><button type="button" class="highlight-action${chosen ? ' selected' : ''}" data-highlight="${item.id}" aria-label="${action}: ${escapeHtml(item.name)}" ${highlightPending ? 'disabled' : ''} ${updating ? 'aria-busy="true"' : ''}>${adminIcon('highlights')}<span>${updating ? (chosen ? 'Removendo…' : 'Adicionando…') : action}</span></button></td></tr>`;
   }).join('')}</tbody></table></div>` : '<p class="empty">Nenhum produto encontrado com esses filtros.</p>';
 }
 function recordName(record) {
@@ -158,7 +162,7 @@ function openEditor(id = null) {
       <div id="photo-preview" class="photo-preview">${item.image || item.box ? picture(item) : '<span>Sem foto</span>'}</div>
       <div><strong>Foto da vitrine</strong><p id="photo-status">${item.image || item.box ? 'Imagem atual do cadastro' : 'Adicione uma imagem para este cadastro.'}</p>
       <label class="outline photo-picker">${item.image || item.box ? 'Trocar foto' : 'Escolher foto'}<input name="image" type="file" accept="image/png,image/jpeg,image/webp"></label>
-      <small>${tab === 'products' ? 'PNG, JPEG ou WebP · recorte quadrado automático' : 'PNG, JPEG ou WebP · até 500 KB'}</small></div></section>`;
+      <small>${tab === 'products' ? 'PNG, JPEG ou WebP · enquadramento vertical 4:5' : 'PNG, JPEG ou WebP · até 500 KB'}</small></div></section>`;
   const categoryDisplay = tab === 'categories' ? `<label class="switch"><span><input name="show_name" type="checkbox" ${item.show_name !== false ? 'checked' : ''}> Mostrar nome sobre a foto</span><small>Desmarque quando o nome já estiver escrito na imagem.</small></label>` : '';
   const publication = `<label class="switch"><span><input name="active" type="checkbox" ${item.active ? 'checked' : ''}> Publicar na vitrine</span></label>`;
   const product = tab === 'products';
@@ -236,21 +240,24 @@ document.addEventListener('click', event => {
 $admin('#filter').addEventListener('input', drawRecords);
 $admin('#publication').addEventListener('change', drawRecords);
 $admin('#category-filter').addEventListener('change', drawRecords);
-$admin('#records').addEventListener('change', async event => {
-  const checkbox = event.target;
-  if (!checkbox.matches('[data-highlight]')) return;
-  const product = catalog.products.find(item => item.id === Number(checkbox.dataset.highlight));
+$admin('#records').addEventListener('click', async event => {
+  const button = event.target.closest('button[data-highlight]');
+  if (!button || highlightPending || saving || tab !== 'highlights') return;
+  const product = catalog.products.find(item => item.id === Number(button.dataset.highlight));
   if (!product) return;
+  const featured = catalog.highlights.some(item => item.product === product.id && item.active);
   const next = structuredClone(catalog);
-  const matches = next.highlights.filter(item => item.product === product.id);
-  matches.forEach((item, index) => { item.active = checkbox.checked && index === 0; });
-  if (checkbox.checked && !matches.length) {
-    next.highlights.push({id:nextRecordId(next, 'highlights'), product:product.id, name:product.name, active:true});
-  }
-  if (!await save(next)) checkbox.checked = !checkbox.checked;
-  else {
+  next.highlights = next.highlights.filter(item => item.product !== product.id);
+  if (!featured) next.highlights.push({id:product.id, product:product.id, active:true});
+  highlightPending = {id:product.id};
+  status.textContent = '';
+  drawRecords();
+  const success = await save(next, {edit:{kind:'highlights', id:product.id}});
+  highlightPending = null;
+  if (tab === 'highlights') {
+    if (success) status.textContent = featured ? 'Produto retirado dos destaques.' : 'Produto adicionado aos destaques.';
     drawRecords();
-    $admin(`[data-highlight="${product.id}"]`)?.focus();
+    ($admin(`[data-highlight="${product.id}"]`) || $admin('#publication')).focus({preventScroll:true});
   }
 });
 editor.addEventListener('invalid', () => report('Confira os campos indicados antes de salvar.'), true);

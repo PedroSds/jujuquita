@@ -146,7 +146,14 @@ td:last-child { text-align:right }
 .bulk-toolbar { justify-content:space-between }
 .bulk-actions { display:flex; flex-wrap:wrap; gap:6px }
 .row-select { min-width:36px; min-height:42px; display:grid; place-items:center; cursor:pointer }
-.highlight-toggle { display:inline-flex; align-items:center; gap:8px; min-height:44px; cursor:pointer }
+.highlight-action { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 15px; min-height:44px; border:1px solid #bdcde4; border-radius:99px; background:#fff; color:var(--ink); font-weight:900; font-size:14px; cursor:pointer; white-space:nowrap }
+.highlight-action .icon { width:19px; height:19px }
+.highlight-action:hover { background:#f3f8fd; border-color:#9baecb }
+.highlight-action.selected { color:var(--action); background:var(--petal); border-color:#efb6d0 }
+.highlight-action.selected .icon { fill:#f9c0d9 }
+.highlight-action.selected:hover { background:#fce2ee; border-color:var(--pink) }
+.highlight-action:disabled { opacity:.65; cursor:wait }
+.featured-status { display:block; width:max-content; color:var(--action); font-size:12px; font-weight:800; margin-top:3px }
 .highlights-table td:last-child { min-width:180px }
 .delete-record { color:#9f2947 }
 .delete-record:hover { background:#fff0f5 }
@@ -208,7 +215,7 @@ form .btn { justify-self:start }
 
 .crop-panel { padding:clamp(13px,4vw,22px); display:grid; gap:12px }
 .crop-panel p { margin-top:5px; font-size:13px }
-.crop-panel canvas { display:block; width:min(100%,42dvh,380px); height:auto; aspect-ratio:1; border:2px solid var(--pink); border-radius:11px; background:#fff; margin:auto; cursor:grab; touch-action:none }
+.crop-panel canvas { display:block; width:min(100%,40dvh,430px); height:auto; aspect-ratio:4/5; border:2px solid var(--pink); border-radius:11px; background:#fff; margin:auto; cursor:grab; touch-action:none }
 .crop-panel canvas:active { cursor:grabbing }
 .crop-slider { display:grid; gap:3px; font-size:13px; font-weight:800 }
 .crop-position { display:grid; grid-template-columns:1fr 1fr; gap:12px }
@@ -282,6 +289,7 @@ form .btn { justify-self:start }
   .record-actions-panel { top:auto; bottom:calc(100% + 5px) }
   .highlights-table tbody tr { grid-template-columns:minmax(0,1fr) }
   .highlights-table td:last-child { display:flex; align-items:center; flex-wrap:wrap; gap:8px; min-width:0 }
+  .highlight-action { width:100% }
   .bulk-toolbar { padding:10px }
   input:not([type=checkbox]),select,textarea { font-size:16px }
   .editor-columns { grid-template-columns:1fr }
