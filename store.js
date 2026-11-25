@@ -87,7 +87,6 @@ function collection() {
   const active = page.querySelector(`[data-category="${categoryId}"]`);
   active.classList.add('active');
   active.setAttribute('aria-pressed', 'true');
-  $('#search').value = searchTerm;
 }
 function openCollection(category = 0, search = '') {
   const url = new URL('colecao.html', location.href);
@@ -155,6 +154,7 @@ $('.close').onclick = () => dialog.close();
 $('#bag').onclick = showBag;
 function enableSearchSuggestions() {
   const input = $('#search');
+  const wasFocused = document.activeElement === input;
   const label = input.closest('.search');
   const wrapper = document.createElement('div');
   wrapper.className = 'search-field';
@@ -218,7 +218,10 @@ function enableSearchSuggestions() {
   });
   wrapper.addEventListener('focusout', event => { if (!wrapper.contains(event.relatedTarget)) close(); });
   document.addEventListener('pointerdown', event => { if (!wrapper.contains(event.target)) close(); });
-  if (document.activeElement === input) render();
+  if (wasFocused) {
+    input.focus({preventScroll:true});
+    render();
+  }
 }
 enableSearchSuggestions();
 document.querySelectorAll('.contact').forEach(button => button.onclick = () => {

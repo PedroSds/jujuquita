@@ -65,6 +65,10 @@ if (loginForm) {
       if (!loginScreen.hidden) document.body.dataset.adminEntry = 'login';
     });
 } else {
+  const searchInput = document.querySelector('#search');
+  if (searchInput && document.querySelector('#collection-page')) {
+    searchInput.value = new URLSearchParams(location.search).get('busca')?.trim() || '';
+  }
   Promise.all([database.readCatalog(), database.cart()]).then(async ([catalog, bag]) => {
     initialCatalog = catalog;
     initialBag = bag;
