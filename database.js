@@ -100,7 +100,7 @@ const database = (() => {
   async function saveCatalog(next, expected = revision) {
     const images = [], variants = [];
     const categories = await Promise.all(next.categories.map(async (item, sort_order) => ({
-      id:item.id,name:item.name,active:item.active,sort_order,image_url:await upload(item.image)
+      id:item.id,name:item.name,active:item.active,sort_order,show_name:item.show_name !== false,image_url:await upload(item.image)
     })));
     const products = await Promise.all(next.products.map(async (item, sort_order) => {
       const photos = await Promise.all([item.image,...(item.gallery || [])].filter(Boolean).map(upload));
@@ -130,7 +130,7 @@ const database = (() => {
     if (!item) return null;
     const fields = kind === 'products'
       ? ['name','active','category','price','promotion','description','sku','measurements','care','sizes','colors','stock','image','gallery']
-      : ['name','active','image','product'];
+      : ['name','active','image','product','show_name'];
     const values = fields.map(field => item[field] ?? null);
     const variants = (item.variants || []).map(({size,color,stock}) => JSON.stringify([size,color,stock])).sort();
     return JSON.stringify([values, variants]);

@@ -153,17 +153,18 @@ function openEditor(id = null) {
   selected = id;
   const items = catalog[tab];
   const item = items.find(record => record.id === selected) || {};
-  const name = `<label>${tab === 'products' ? 'Nome do produto' : 'Nome'}<input name="name" required maxlength="100" value="${escapeHtml(item.name)}"></label>`;
+  const name = `<label>${tab === 'products' ? 'Nome do produto' : tab === 'categories' ? 'Nome da categoria (usado nos filtros)' : 'Nome'}<input name="name" required maxlength="100" value="${escapeHtml(item.name)}"></label>`;
   const photo = `<section class="photo-field" aria-label="Foto do cadastro">
       <div id="photo-preview" class="photo-preview">${item.image || item.box ? picture(item) : '<span>Sem foto</span>'}</div>
       <div><strong>Foto da vitrine</strong><p id="photo-status">${item.image || item.box ? 'Imagem atual do cadastro' : 'Adicione uma imagem para este cadastro.'}</p>
       <label class="outline photo-picker">${item.image || item.box ? 'Trocar foto' : 'Escolher foto'}<input name="image" type="file" accept="image/png,image/jpeg,image/webp"></label>
       <small>PNG, JPEG ou WebP · até 500 KB</small></div></section>`;
+  const categoryDisplay = tab === 'categories' ? `<label class="switch"><span><input name="show_name" type="checkbox" ${item.show_name !== false ? 'checked' : ''}> Mostrar nome sobre a foto</span><small>Desmarque quando o nome já estiver escrito na imagem.</small></label>` : '';
   const publication = `<label class="switch"><span><input name="active" type="checkbox" ${item.active ? 'checked' : ''}> Publicar na vitrine</span></label>`;
   const product = tab === 'products';
   editorDialog.classList.toggle('product-editor', product);
   editor.innerHTML = `<div class="editor-heading"><h2 id="editor-title">${selected ? 'Editar ' + singular[tab] : $admin('#create').textContent}</h2>${selected || product ? `<span class="badge ${item.active ? 'active' : ''}">${item.active ? 'Publicado' : 'Rascunho'}</span>` : ''}</div>
-    ${product ? productFields(item, name, photo, publication) : name + (tab === 'highlights' ? `<label>Produto<select name="product" required><option value="">Selecione</option>${options(catalog.products, item.product)}</select></label>` : photo) + publication}
+    ${product ? productFields(item, name, photo, publication) : name + (tab === 'highlights' ? `<label>Produto<select name="product" required><option value="">Selecione</option>${options(catalog.products, item.product)}</select></label>` : photo) + categoryDisplay + publication}
     <div class="form-actions editor-save"><p class="form-status" id="form-status" role="alert"></p><button type="button" class="outline" id="cancel">Cancelar</button><button class="btn">${product ? 'Salvar produto' : 'Salvar'}</button></div>`;
   editorDialog.setAttribute('aria-labelledby', 'editor-title');
   editorDialog.showModal();
@@ -256,6 +257,7 @@ editor.addEventListener('submit', async event => {
   const item = {...existing, id: existing?.id ?? nextRecordId(next, kind),
     name: form.get('name').trim(), active: form.has('active')};
   if (!item.name) { report('Informe um nome.'); return; }
+  if (kind === 'categories') item.show_name = form.has('show_name');
   if (kind === 'products') {
     item.category = Number(form.get('category'));
     item.description = form.get('description').trim();
