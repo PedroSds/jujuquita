@@ -21,6 +21,7 @@ if (loginForm) {
   const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('juju-admin') : null;
   async function showAdmin(catalog) {
     initialCatalog = catalog;
+    await loadScript('photo-crop.js');
     await loadScript('admin.js');
     await loadScript('admin-enhancements.js');
     loginScreen.hidden = true;

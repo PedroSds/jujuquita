@@ -158,7 +158,7 @@ function openEditor(id = null) {
       <div id="photo-preview" class="photo-preview">${item.image || item.box ? picture(item) : '<span>Sem foto</span>'}</div>
       <div><strong>Foto da vitrine</strong><p id="photo-status">${item.image || item.box ? 'Imagem atual do cadastro' : 'Adicione uma imagem para este cadastro.'}</p>
       <label class="outline photo-picker">${item.image || item.box ? 'Trocar foto' : 'Escolher foto'}<input name="image" type="file" accept="image/png,image/jpeg,image/webp"></label>
-      <small>PNG, JPEG ou WebP · até 500 KB</small></div></section>`;
+      <small>${tab === 'products' ? 'PNG, JPEG ou WebP · recorte quadrado automático' : 'PNG, JPEG ou WebP · até 500 KB'}</small></div></section>`;
   const categoryDisplay = tab === 'categories' ? `<label class="switch"><span><input name="show_name" type="checkbox" ${item.show_name !== false ? 'checked' : ''}> Mostrar nome sobre a foto</span><small>Desmarque quando o nome já estiver escrito na imagem.</small></label>` : '';
   const publication = `<label class="switch"><span><input name="active" type="checkbox" ${item.active ? 'checked' : ''}> Publicar na vitrine</span></label>`;
   const product = tab === 'products';
@@ -175,10 +175,19 @@ editorDialog.addEventListener('close', () => {
   if (previewUrl) URL.revokeObjectURL(previewUrl);
   previewUrl = undefined;
 });
-editor.addEventListener('change', event => {
+editor.addEventListener('change', async event => {
   if (event.target.name !== 'image') return;
   const file = event.target.files[0];
   if (!file) return;
+  if (tab === 'products') {
+    event.target.value = '';
+    await stageProductPhotos([file], cropped => {
+      editor.dataset.cover = cropped;
+      $admin('#photo-preview').innerHTML = picture({name:'Nova capa', image:cropped});
+      $admin('#photo-status').textContent = 'Foto recortada · será aplicada ao salvar';
+    });
+    return;
+  }
   if (!validPhoto(file)) {
     event.target.value = '';
     const item = catalog[tab].find(record => record.id === selected);

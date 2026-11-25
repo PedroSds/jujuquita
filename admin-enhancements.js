@@ -108,7 +108,10 @@ function prepareProductOptions(item) {
   editor.elements['track-stock'].onchange = updateStockFields;
   renderProductOptions();
 }
-editor.addEventListener('input', () => { editorDirty = true; });
+editor.addEventListener('input', event => {
+  if (tab === 'products' && event.target.type === 'file') return;
+  editorDirty = true;
+});
 window.addEventListener('beforeunload', event => {
   if (editorDialog.open && editorDirty) { event.preventDefault(); event.returnValue = ''; }
 });
@@ -158,31 +161,39 @@ function enhanceEditor(item) {
     badge.textContent = editor.elements.active.checked ? 'Publicado ao salvar' : 'Rascunho';
   };
   editor.querySelector('.photo-field').insertAdjacentHTML('afterend',
-    '<section class="product-gallery-field"><h3>Outros ângulos do produto</h3><p>Adicione até 4 fotos além da principal. Você pode selecionar várias de uma vez.</p><label class="outline photo-picker">Adicionar fotos<input id="gallery-upload" type="file" multiple accept="image/png,image/jpeg,image/webp" aria-label="Adicionar fotos do produto"></label><small>PNG, JPEG ou WebP · até 500 KB por foto</small><div id="gallery-editor"></div><p id="gallery-status" role="status"></p></section>');
+    '<section class="product-gallery-field"><h3>Outros ângulos do produto</h3><p>Adicione até 4 fotos além da principal. Você poderá ajustar o recorte de cada uma.</p><label class="outline photo-picker">Adicionar fotos<input id="gallery-upload" type="file" multiple accept="image/png,image/jpeg,image/webp" aria-label="Adicionar fotos do produto"></label><small>PNG, JPEG ou WebP · recorte quadrado automático</small><div id="gallery-editor"></div><p id="gallery-status" role="status"></p></section>');
   renderGallery();
   $admin('#gallery-upload').onchange = async event => {
     if (editorBusy) return;
     const files = [...event.target.files];
-    if (files.length + galleryDraft.length > 4 || files.some(file => !validPhoto(file))) {
-      report('Escolha até 4 fotos de no máximo 500 KB cada.');
-      event.target.value = '';
-      return;
-    }
-    const saveButton=editor.querySelector('.editor-save .btn');
-    const cancel=$admin('#cancel');
-    editorBusy=true;
-    saveButton.disabled=true;
-    cancel.disabled=true;
-    $admin('#gallery-status').textContent='Carregando fotos…';
-    try {
-      const images = await Promise.all(files.map(readPhoto));
-      galleryDraft = [...new Set([...galleryDraft,...images])];
-      editorDirty = true;
+    event.target.value = '';
+    if (files.length + galleryDraft.length > 4) { report('Escolha até 4 fotos adicionais.'); return; }
+    await stageProductPhotos(files, cropped => {
+      if (!galleryDraft.includes(cropped)) galleryDraft.push(cropped);
       renderGallery();
-      report('');
-    } catch { report('Não foi possível carregar as imagens.'); }
-    finally { editorBusy=false; cancel.disabled=false; saveButton.disabled=false; event.target.value=''; }
+    });
   };
+}
+async function stageProductPhotos(files, onCrop) {
+  if (editorBusy || !files.length) return;
+  if (files.some(file => !validProductPhoto(file))) {
+    report('Escolha fotos PNG, JPEG ou WebP de até 25 MB cada.');
+    return;
+  }
+  const saveButton = editor.querySelector('.editor-save .btn');
+  const cancel = $admin('#cancel');
+  editorBusy = true;
+  saveButton.disabled = cancel.disabled = true;
+  report('');
+  try {
+    for (const [index,file] of files.entries()) {
+      const cropped = await cropProductPhoto(file, files.length > 1 ? `Ajustar foto ${index+1} de ${files.length}` : 'Ajustar foto do produto');
+      if (!cropped) break;
+      onCrop(cropped);
+      editorDirty = true;
+    }
+  } catch { report('Não foi possível preparar a foto. Escolha outra imagem.'); }
+  finally { editorBusy = false; saveButton.disabled = cancel.disabled = false; }
 }
 function renderGallery() {
   $admin('#gallery-editor').innerHTML = galleryDraft.map((image,index) =>
