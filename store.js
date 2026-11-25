@@ -1,24 +1,41 @@
 const $ = selector => document.querySelector(selector);
 const catalog = initialCatalog;
-const categories = catalog.categories.filter(item => item.active);
-function visibleProducts(data) {
-  const visibleCategories = new Set(data.categories.filter(item => item.active).map(item => item.id));
-  const featured = new Set(data.highlights.filter(item => item.active).map(item => item.product));
-  return data.products.filter(item => item.active && (visibleCategories.has(item.category) || featured.has(item.id)));
-}
+const categories = storeView.activeCategories(catalog);
+const visibleProducts = storeView.visibleProducts;
 const products = visibleProducts(catalog);
-const collectionProducts = products.filter(item => categories.some(category => category.id === item.category));
+const collectionProducts = storeView.collectionProducts(catalog);
 const dialog = $('#modal');
 const params = new URLSearchParams(location.search);
 const categoryId = categories.find(item => item.id === Number(params.get('categoria')))?.id || 0;
 const searchTerm = params.get('busca')?.trim() || '';
-function matchesSearch(item, query) {
-  const category = catalog.categories.find(entry => entry.id === item.category);
-  const searchable = normalizeSearch([item.name, item.description, item.sku, category?.name, ...item.colors, ...item.sizes].join(' '));
-  return normalizeSearch(query).trim().split(/\s+/).every(term => searchable.includes(term));
-}
-let bag = initialBag.filter(row => row && Number.isInteger(row.id) && Number.isInteger(row.qty) && row.qty > 0 && row.qty <= 99 && typeof row.size === 'string');
+const matchesSearch = (item, query) => storeView.matchesSearch(catalog, item, query);
+const serverRendered = document.body.hasAttribute('data-store-rendered');
+let bag = [];
+let bagLoaded = false;
+let bagPromise;
 let savingBag = false;
+function loadBag() {
+  if (bagLoaded) return Promise.resolve(true);
+  if (!bagPromise) {
+    const first = initialBagPromise;
+    initialBagPromise = null;
+    bagPromise = (first || database.cart()).then(result => {
+      if (!Array.isArray(result)) return false;
+      bag = result.filter(row => row && Number.isInteger(row.id) && Number.isInteger(row.qty) && row.qty > 0 && row.qty <= 99 && typeof row.size === 'string');
+      bagLoaded = true;
+      updateBagCount();
+      return true;
+    }).catch(() => false).finally(() => { bagPromise = null; });
+  }
+  return bagPromise;
+}
+async function openBag() {
+  if (await loadBag()) showBag();
+  else {
+    modal('<h2>Sua sacola</h2><p>Não foi possível carregar sua sacola. Confira a conexão e tente novamente.</p><button class="btn" id="retry-bag">Tentar novamente</button>');
+    $('#retry-bag').onclick = openBag;
+  }
+}
 function updateBagCount() {
   $('#count').textContent = bag.reduce((sum, row) => sum + row.qty, 0);
 }
@@ -35,13 +52,8 @@ function modal(content) {
   $('#modal-content').innerHTML = content;
   if (!dialog.open) dialog.showModal();
 }
-function categoryButton(item) {
-  return `<button data-category="${item.id}">${escapeHtml(item.name)}</button>`;
-}
-function productCard(item) {
-  return `<article class="product"><button class="product-photo" data-product="${item.id}" aria-label="Ver ${escapeHtml(item.name)}">${picture(item)}</button><h3>${escapeHtml(item.name)}</h3><p>${money(salePrice(item))}</p><div class="product-actions"><button class="btn" data-quick-add="${item.id}">Adicionar à sacola</button><button class="outline" data-product="${item.id}">Ver detalhes</button></div></article>`;
-}
 async function addToBag(item, size, color) {
+  if (!await loadBag()) return 'Não foi possível carregar a sacola. Tente novamente.';
   if (!item.sizes.includes(size) || !item.colors.includes(color)) return 'Selecione um tamanho e uma cor.';
   const next = structuredClone(bag);
   const row = next.find(entry => entry.id === item.id && entry.size === size && (entry.color || 'Única') === color);
@@ -78,15 +90,8 @@ async function quickAdd(id) {
 }
 function collection() {
   const page = $('#collection-page');
-  if (!page) return;
-  const visible = collectionProducts.filter(item => (!categoryId || categoryId === item.category) && matchesSearch(item, searchTerm));
-  page.innerHTML = `<h1>Nossa coleção</h1>
-    <div class="filters" aria-label="Categorias">${[{id:0,name:'Todos'}, ...categories].map(categoryButton).join('')}</div>
-    ${searchTerm ? `<p>Resultados para “${escapeHtml(searchTerm)}” · <a href="colecao.html">Limpar busca</a></p>` : ''}
-    <div class="products">${visible.map(productCard).join('') || '<p>Nenhuma peça encontrada.</p>'}</div>`;
-  const active = page.querySelector(`[data-category="${categoryId}"]`);
-  active.classList.add('active');
-  active.setAttribute('aria-pressed', 'true');
+  if (!page || serverRendered) return;
+  page.innerHTML = storeView.collection(catalog, params);
 }
 function openCollection(category = 0, search = '') {
   const url = new URL('colecao.html', location.href);
@@ -115,14 +120,11 @@ function showBag() {
       ${number ? `<p><a class="btn" href="https://wa.me/${number}?text=${encodeURIComponent(message)}" target="_blank" rel="noopener">Enviar pedido pelo WhatsApp</a></p>` : '<p>O WhatsApp da loja ainda não foi configurado.</p>'}` : ''}
     <button class="outline" data-collection>Continuar comprando</button>`);
 }
-if ($('#categories')) $('#categories').innerHTML = categories.map(item => {
-  const imageOnly = item.show_name === false && Boolean(item.image);
-  return `<button class="category${imageOnly ? ' category-art' : ''}" data-category="${item.id}" aria-label="${escapeHtml(item.name)}">${picture(item)}${imageOnly ? '' : `<span class="category-label">${escapeHtml(item.name)}</span>`}</button>`;
-}).join('');
-document.querySelectorAll('[data-category-menu]').forEach(menu => menu.innerHTML = categories.map(categoryButton).join(''));
-const featuredIds = [...new Set(catalog.highlights.filter(item => item.active).map(item => item.product))];
-const highlights = featuredIds.map(id => products.find(product => product.id === id)).filter(Boolean);
-if ($('#highlights')) $('#highlights').innerHTML = highlights.length ? `<h2>Destaques</h2><div class="products featured-products">${highlights.map(productCard).join('')}</div>` : '';
+if (!serverRendered) {
+  if ($('#categories')) $('#categories').innerHTML = storeView.categoryRail(catalog);
+  document.querySelectorAll('[data-category-menu]').forEach(menu => menu.innerHTML = categories.map(item => storeView.categoryButton(item)).join(''));
+  if ($('#highlights')) $('#highlights').innerHTML = storeView.highlights(catalog);
+}
 document.addEventListener('click', async event => {
   const button = event.target.closest('button');
   if (!button) return;
@@ -147,11 +149,11 @@ document.addEventListener('click', async event => {
     else row.qty = Math.min(99, row.qty + change);
     try { await persistBag(next); }
     catch { alert('Não foi possível atualizar a sacola. Tente novamente.'); return; }
-    showBag();
+    if (dialog.open) showBag();
   }
 });
 $('.close').onclick = () => dialog.close();
-$('#bag').onclick = showBag;
+$('#bag').onclick = openBag;
 function enableSearchSuggestions() {
   const input = $('#search');
   const wasFocused = document.activeElement === input;
@@ -243,7 +245,7 @@ if (policy) {
     `<p><strong>${label}</strong><br>${escapeHtml(catalog.settings[field])}</p>`).join('');
 }
 collection();
-updateBagCount();
+loadBag();
 
 const categoryRail = $('#categories');
 if (categoryRail) enableCategoryRail(categoryRail);

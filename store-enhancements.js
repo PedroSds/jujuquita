@@ -5,17 +5,7 @@ function renderProductPage() {
   if (!item) { page.innerHTML='<h1>Produto indisponível</h1><a class="btn" href="colecao.html">Explorar coleção</a>'; return; }
   document.title = item.name + ' | Jujuquita';
   const images = [...new Set([item.image,...(item.gallery || [])].filter(Boolean))];
-  page.innerHTML = `<p><a href="colecao.html">Nossa coleção</a> / ${escapeHtml(item.name)}</p><div class="product-page-grid">
-    <div><div id="main-photo">${picture(item)}</div><div class="photo-thumbnails">${images.map((image,index)=>`<button data-gallery="${index}" aria-label="Ver foto ${index+1}">${picture({name:item.name,image})}</button>`).join('')}</div></div>
-    <form id="product-form"><h1>${escapeHtml(item.name)}</h1>
-    <p class="product-price">${item.promotion ? `<del>${money(item.price)}</del> ` : ''}${money(salePrice(item))}</p><p>${escapeHtml(item.description)}</p>
-    <label>Tamanho<select name="size" required><option value="">Selecione</option>${item.sizes.map(size=>`<option>${escapeHtml(size)}</option>`).join('')}</select></label>
-    <label>Cor<select name="color" required>${item.colors.map(color=>`<option>${escapeHtml(color)}</option>`).join('')}</select></label>
-    <p id="availability" role="status">Escolha um tamanho.</p><button class="btn">Adicionar à sacola</button>
-    <p id="product-feedback" role="status"></p>
-    <details><summary>Guia de medidas</summary><p>${escapeHtml(item.measurements || 'Consulte as medidas com a loja.')}</p></details>
-    <details><summary>Tecido e cuidados</summary><p>${escapeHtml(item.care || 'Consulte os detalhes com a loja.')}</p></details>
-    ${['delivery','payment','returns'].map((key,index)=>`<details><summary>${['Entrega','Pagamento','Trocas'][index]}</summary><p>${escapeHtml(catalog.settings[key])}</p></details>`).join('')}</form></div>`;
+  if (!serverRendered) page.innerHTML = storeView.product(catalog,item);
   page.querySelectorAll('[data-gallery]').forEach(button=>button.onclick=()=>$('#main-photo').innerHTML=picture({name:item.name,image:images[Number(button.dataset.gallery)]}));
   const form=$('#product-form');
   form.onchange=()=>{
@@ -34,32 +24,25 @@ function renderProductPage() {
 function enhanceCollection() {
   const page=$('#collection-page');
   if (!page) return;
-  const sizes=[...new Set(collectionProducts.flatMap(item=>item.sizes))];
-  const colors=[...new Set(collectionProducts.flatMap(item=>item.colors))];
-  const options=values=>values.map(value=>`<option>${escapeHtml(value)}</option>`).join('');
-  page.querySelector('.products').insertAdjacentHTML('beforebegin',`<form id="catalog-filters" class="catalog-controls"><label>Tamanho<select name="size"><option value="">Todos</option>${options(sizes)}</select></label><label>Cor<select name="color"><option value="">Todas</option>${options(colors)}</select></label><label>Até R$<input name="max" type="number" min="0" step=".01" placeholder="Qualquer valor"></label><label>Ordenar<select name="sort"><option value="new">Novidades</option><option value="low">Menor preço</option><option value="high">Maior preço</option></select></label><button type="reset" class="outline">Limpar filtros</button></form><p id="catalog-count" aria-live="polite"></p>`);
   const controls=$('#catalog-filters');
   let limit=12;
+  const bindMore=()=>{
+    const button=$('#load-more');
+    if(button) button.onclick=()=>{limit+=12;update();};
+  };
   function update() {
-    const state=new FormData(controls);
-    const filtered=collectionProducts.filter(item=>(!categoryId || item.category===categoryId) &&
-      matchesSearch(item,searchTerm) &&
-      (!state.get('size') || item.sizes.includes(state.get('size'))) &&
-      (!state.get('color') || item.colors.includes(state.get('color'))) &&
-      (!state.get('max') || salePrice(item)<=Math.round(Number(state.get('max'))*100)));
-    filtered.sort((a,b)=>state.get('sort')==='low' ? salePrice(a)-salePrice(b) : state.get('sort')==='high' ? salePrice(b)-salePrice(a) : b.id-a.id);
-    page.querySelector('.products').innerHTML=filtered.slice(0,limit).map(productCard).join('') || '<p>Nenhuma peça encontrada. Experimente ampliar os filtros.</p>';
-    $('#catalog-count').textContent=`${filtered.length} produtos encontrados`;
+    const {filtered}=storeView.collectionSelection(catalog,params,new FormData(controls));
+    page.querySelector('.products').innerHTML=storeView.collectionCards(filtered,limit);
+    $('#catalog-count').textContent=storeView.resultCount(filtered.length);
     $('#load-more')?.remove();
-    if(filtered.length>limit) {
-      page.insertAdjacentHTML('beforeend','<button id="load-more" class="outline">Ver mais produtos</button>');
-      $('#load-more').onclick=()=>{limit+=12;update();};
-    }
+    if(filtered.length>limit) page.insertAdjacentHTML('beforeend','<button id="load-more" class="outline">Ver mais produtos</button>');
+    bindMore();
+    window.storeMotion?.observe();
   }
   controls.oninput=()=>{limit=12;update();};
   controls.onreset=()=>setTimeout(()=>{limit=12;update();});
   controls.onsubmit=event=>event.preventDefault();
-  update();
+  bindMore();
 }
 const basicShowBag=showBag;
 const deliveryDraft = {};
@@ -191,8 +174,8 @@ showBag=()=>{
     };
   }
 };
-$('#bag').onclick=showBag;
+$('#bag').onclick=openBag;
 renderProductPage();
 enhanceCollection();
 const footerContact=document.querySelector('footer .footer-grid>div:last-child');
-if(footerContact && catalog.settings.hours)footerContact.insertAdjacentHTML('beforeend',`<p>${escapeHtml(catalog.settings.hours)}</p>`);
+if(!serverRendered && footerContact && catalog.settings.hours)footerContact.insertAdjacentHTML('beforeend',`<p>${escapeHtml(catalog.settings.hours)}</p>`);

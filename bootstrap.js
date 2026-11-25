@@ -1,9 +1,10 @@
 let initialCatalog;
-let initialBag;
+let initialBagPromise;
 const scriptRoot = document.currentScript.src;
 function loadScript(src) {
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
+    script.async = false;
     script.src = new URL(src, scriptRoot);
     script.onload = resolve;
     script.onerror = () => reject(Error('Não foi possível carregar a página. Atualize para tentar novamente.'));
@@ -21,9 +22,7 @@ if (loginForm) {
   const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('juju-admin') : null;
   async function showAdmin(catalog) {
     initialCatalog = catalog;
-    await loadScript('photo-crop.js');
-    await loadScript('admin.js');
-    await loadScript('admin-enhancements.js');
+    await Promise.all(['photo-crop.js','admin.js','admin-enhancements.js'].map(loadScript));
     loginScreen.hidden = true;
     sidebar.hidden = workspace.hidden = false;
     sidebar.inert = workspace.inert = false;
@@ -69,16 +68,22 @@ if (loginForm) {
   if (searchInput && document.querySelector('#collection-page')) {
     searchInput.value = new URLSearchParams(location.search).get('busca')?.trim() || '';
   }
-  Promise.all([database.readCatalog(), database.cart()]).then(async ([catalog, bag]) => {
+  initialBagPromise = database.cart().catch(() => null);
+  const embedded = document.querySelector('#public-catalog');
+  const catalogReady = embedded ? Promise.resolve().then(() => normalizeCatalog(JSON.parse(embedded.textContent))) : database.readCatalog();
+  catalogReady.then(async catalog => {
     initialCatalog = catalog;
-    initialBag = bag;
-    await loadScript('store.js');
-    await loadScript('store-enhancements.js');
+    await Promise.all(['store.js','store-enhancements.js'].map(loadScript));
+    document.body.classList.remove('store-loading');
+    window.storeMotion?.observe();
   }).catch(() => {
-    const message = document.createElement('p');
-    message.className = 'wrap';
+    document.body.classList.remove('store-loading');
+    document.querySelectorAll('[data-loading]').forEach(element => element.remove());
+    const message = document.createElement('div');
+    message.className = 'wrap store-error';
     message.setAttribute('role', 'alert');
-    message.textContent = 'Não foi possível carregar a loja. Atualize a página para tentar novamente.';
+    message.innerHTML = '<p>Não foi possível carregar a loja. Confira sua conexão e tente novamente.</p><button class="outline" type="button">Tentar novamente</button>';
+    message.querySelector('button').onclick = () => location.reload();
     document.querySelector('main').prepend(message);
   });
 }

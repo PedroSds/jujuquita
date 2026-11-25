@@ -75,12 +75,22 @@ const database = (() => {
       readAll('juju_highlights','order=sort_order,product_id',admin), read('juju_settings','id=eq.true',admin)
     ]);
     const [categories, products, images, variants, highlights, [settings]] = data;
-    return normalizeCatalog({
+    const normalize = typeof module !== 'undefined' && module.exports ? require('./catalog.js').normalizeCatalog : normalizeCatalog;
+    const imagesByProduct = new Map(), variantsByProduct = new Map();
+    for (const image of images) {
+      if (!imagesByProduct.has(image.product_id)) imagesByProduct.set(image.product_id, []);
+      imagesByProduct.get(image.product_id).push(image.image_url);
+    }
+    for (const variant of variants) {
+      if (!variantsByProduct.has(variant.product_id)) variantsByProduct.set(variant.product_id, []);
+      variantsByProduct.get(variant.product_id).push(variant);
+    }
+    return normalize({
       categories: categories.map(row => ({ ...row, image:row.image_url })),
       products: products.map(row => {
-        const photos = images.filter(image => image.product_id === row.id).map(image => image.image_url);
+        const photos = imagesByProduct.get(row.id) || [];
         return { ...row, category:row.category_id, price:row.price_cents, promotion:row.promotion_cents,
-          image:photos[0], gallery:photos.slice(1), variants:variants.filter(entry => entry.product_id === row.id) };
+          image:photos[0], gallery:photos.slice(1), variants:variantsByProduct.get(row.id) || [] };
       }),
       highlights: highlights.map(row => ({ ...row, id:row.product_id, product:row.product_id })),
       whatsapp:settings?.whatsapp || '',
@@ -205,3 +215,4 @@ const database = (() => {
     }
   };
 })();
+if (typeof module !== 'undefined' && module.exports) module.exports = database;

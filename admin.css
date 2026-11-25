@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900;1000&display=swap');
+@font-face{font-family:Nunito;src:url("assets/nunito-latin.woff2") format("woff2");font-weight:400 1000;font-style:normal;font-display:swap}
 
 :root {
   color-scheme:light;
@@ -64,7 +64,7 @@ button,a,summary { touch-action:manipulation; -webkit-tap-highlight-color:transp
 :focus-visible { outline:3px solid #287baf; outline-offset:3px }
 .icon-library { position:absolute; width:0; height:0; overflow:hidden }
 .icon { display:inline-block; width:21px; height:21px; flex:none; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round }
-.brand-art { display:block; width:158px; aspect-ratio:233/76; background-image:url('assets/reference.png'); background-size:calc(950 / 233 * 100%) calc(1656 / 76 * 100%); background-position:calc(42 / (950 - 233) * 100%) calc(34 / (1656 - 76) * 100%); background-repeat:no-repeat }
+.brand-art { display:block; width:158px; aspect-ratio:233/76; background-image:url('assets/brand.webp'); background-size:contain; background-position:center; background-repeat:no-repeat }
 .brand { padding:6px 10px 20px; border-bottom:1px solid var(--line); display:grid; gap:6px }
 .brand small { padding-left:4px; font-size:12px; font-weight:800 }
 .sidebar { padding:22px 16px 16px; position:sticky; top:0; height:100dvh; overflow:auto; display:flex; flex-direction:column; gap:18px; background:#fff; border-right:1px solid var(--line) }

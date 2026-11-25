@@ -5,11 +5,16 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/admin-page.js": { "includeFiles": "jujuadmin/index.html" }
+    "api/admin-page.js": { "includeFiles": "jujuadmin/index.html" },
+    "api/store-page.js": { "includeFiles": "*.html" }
   },
   "rewrites": [
     { "source": "/jujuadmin", "destination": "/api/admin-page" },
-    { "source": "/jujuadmin/index.html", "destination": "/api/admin-page" }
+    { "source": "/jujuadmin/index.html", "destination": "/api/admin-page" },
+    { "source": "/", "destination": "/api/store-page?page=home" },
+    { "source": "/index.html", "destination": "/api/store-page?page=home" },
+    { "source": "/colecao.html", "destination": "/api/store-page?page=collection" },
+    { "source": "/produto.html", "destination": "/api/store-page?page=product" }
   ],
   "headers": [
     {
