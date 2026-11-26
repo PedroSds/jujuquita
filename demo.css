@@ -121,6 +121,17 @@ header .actions{flex:1;min-width:0}header .search{display:flex;align-items:cente
 header .brand { width: 170px; align-self: center; }
 @media (max-width: 1050px) { header .brand { width: 145px; } }
 @media (max-width: 520px) { header .brand { width: clamp(78px, 23vw, 105px); } }
+@media (max-width: 520px) {
+  header { gap: 8px; padding-inline: 12px; }
+  header .actions { gap: 8px; }
+  header .search {
+    height: 40px;
+    padding: 0 10px;
+    gap: 6px;
+  }
+  header .search input { font-size: 16px; }
+  header #bag { flex: 0 0 38px; }
+}
 .product-page-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;padding-top:20px}.product-page-grid h1{font-size:34px}.product-page-grid form,.customer-info{display:grid;gap:14px}.product-page-grid label,.customer-info label,.catalog-controls label{display:grid;gap:5px}.product-page-grid select,.customer-info input,.customer-info textarea,.catalog-controls input,.catalog-controls select{padding:10px;border:1px solid #ccd8e5;border-radius:9px;font:inherit;max-width:100%;min-width:0}.product-price{font-size:24px;font-weight:900}.product-price del{font-size:16px;color:#748097}.photo-thumbnails{display:flex;gap:8px;margin-top:12px}.photo-thumbnails button{width:70px;padding:0}.catalog-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:12px;align-items:end;margin:20px 0}.bag-photo{width:58px;flex:0 0 58px}.bag-unit{display:block;position:static;background:none;color:inherit;font-size:12px}.bag-row>div:nth-child(2){flex:1}.bag-row{flex-wrap:wrap}.product-page-grid button:disabled{opacity:.5;cursor:not-allowed}#main-photo>.crop{width:100%;border-radius:20px}@media(max-width:700px){.product-page-grid{grid-template-columns:1fr;gap:20px}.catalog-controls{grid-template-columns:1fr 1fr}}
 .product-actions{display:grid;gap:8px;width:100%}.product-actions .btn,.product-actions .outline{width:100%;padding:8px 6px;font-size:13px}.product-actions .btn{white-space:normal}
 .featured-products .product,.collection-page .products .product{display:flex;flex-direction:column;align-self:stretch;min-width:0}
