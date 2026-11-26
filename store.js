@@ -293,6 +293,7 @@ let lastTime;
 function configureLoop() {
   categoryRail.querySelectorAll('[data-loop-copy]').forEach(node => node.remove());
   categoryRail.classList.remove('looping');
+  categoryRail.style.removeProperty('--rail-fraction');
   if (reducedMotion.matches || originals.length < 2 || categoryRail.scrollWidth <= categoryRail.clientWidth + 1) return;
   categoryRail.classList.add('looping');
   const gap = parseFloat(getComputedStyle(categoryRail).gap) || 0;
@@ -324,10 +325,11 @@ function animateRail(now) {
   const bounds = categoryRail.getBoundingClientRect();
   const paused = !categoryRail.classList.contains('looping') || touching || drag || document.hidden ||
     dialog.open || reducedMotion.matches || now < resumeAt ||
-    categoryRail.matches(':hover, :focus-within') || bounds.bottom <= 0 || bounds.top >= innerHeight;
+    (matchMedia('(hover: hover)').matches && categoryRail.matches(':hover')) || categoryRail.matches(':focus-within') || bounds.bottom <= 0 || bounds.top >= innerHeight;
   if (!paused) {
     position = (position + delta * .012) % loopWidth;
     categoryRail.scrollLeft = position;
+    categoryRail.style.setProperty('--rail-fraction', `${position - categoryRail.scrollLeft}px`);
   }
   requestAnimationFrame(animateRail);
 }
