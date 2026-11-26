@@ -249,3 +249,6 @@ header .brand { width: 170px; align-self: center; }
   .faq-questions details[open]::details-content { height: auto; }
   @media (prefers-reduced-motion: reduce) { .faq-questions details::details-content { transition: none; } }
 }
+
+/* Os títulos das seções acompanham a mesma escala em todas as telas. */
+.categories h2, .highlights h2, .story h2, .faq h2 { font-size: clamp(27px, 3vw, 40px); line-height: 1.12; }
