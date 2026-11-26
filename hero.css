@@ -14,8 +14,8 @@
 }
 .hero h1 {
   font-size: clamp(29px, 4.6vw, 70px);
-  line-height: 1.04;
-  margin-bottom: 12px;
+  line-height: .96;
+  margin-bottom: 16px;
 }
 .hero p { margin-bottom: 23px; }
 .hero .btn { padding: 13px clamp(14px, 2vw, 28px); }
