@@ -178,6 +178,7 @@ header .brand { width: 170px; align-self: center; }
   .hero:not([data-motion-seen]) .hero-copy p,.hero.motion-enter .hero-copy p{animation:juju-entrance .48s .07s ease-out both}
   .hero:not([data-motion-seen]) .hero-copy .buttons,.hero.motion-enter .hero-copy .buttons{animation:juju-entrance .48s .12s ease-out both}
   .hero:not([data-motion-seen]) .rainbow-band,.hero.motion-enter .rainbow-band{animation:rainbow-draw 2.1s cubic-bezier(.45,0,.2,1) both}
+  .hero:not([data-motion-seen]) .hero-heart,.hero.motion-enter .hero-heart{animation:heart-fly-in 2.1s cubic-bezier(.22,1,.36,1) both}
   .hero:not([data-motion-seen]) .hero-children-intro,.hero.motion-enter .hero-children-intro{animation:children-rise 1.35s 1.15s cubic-bezier(.22,1,.36,1) both}
   .benefits.motion-enter>div,.categories.motion-enter h2,.highlights.motion-enter>h2,.story.motion-enter .story-inner>*,.faq.motion-enter>*,footer.motion-enter .footer-grid>div,footer.motion-enter .copyright,#collection-page.motion-enter>h1,#collection-page.motion-enter>.filters,#collection-page.motion-enter>.catalog-controls,#product-page.motion-enter .product-page-grid>*,#product-form>details.motion-enter{animation:juju-entrance .45s ease-out backwards}
   .benefits.motion-enter>div:nth-child(2),.story.motion-enter .story-inner>*:nth-child(2),footer.motion-enter .footer-grid>div:nth-child(2){animation-delay:.06s}

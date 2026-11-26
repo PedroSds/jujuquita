@@ -76,6 +76,11 @@
 .hero-children-intro { display: block; width: 100%; height: 100%; }
 @keyframes rainbow-draw { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
 @keyframes children-rise { from { transform: translateY(105%); } to { transform: translateY(0); } }
+@keyframes heart-fly-in {
+  0% { transform: translate(100vw, -22vh) rotate(22deg); }
+  70% { transform: translate(-3%, 2%) rotate(-3deg); }
+  100% { transform: translate(0, 0) rotate(0); }
+}
 .hero-heart {
   position: absolute;
   top: 8%;
