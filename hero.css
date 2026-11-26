@@ -2,7 +2,8 @@
   isolation: isolate;
   overflow: hidden;
   border-radius: 0;
-  background: radial-gradient(ellipse at 24% 18%, #e7f7ff 0%, transparent 52%),
+  background: radial-gradient(ellipse at 92% 15%, rgba(255, 224, 240, .55) 0%, transparent 42%),
+    radial-gradient(ellipse at 24% 18%, #e7f7ff 0%, transparent 52%),
     linear-gradient(165deg, #c6eaff 0%, #b6def7 58%, #d7effe 100%);
 }
 .hero-inner {
