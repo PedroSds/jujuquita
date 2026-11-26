@@ -290,10 +290,15 @@ const originals = [...categoryRail.children];
 let loopWidth = 0;
 let position = 0;
 let lastTime;
+let railVisible = true;
+let usingTransform = false;
+const hoverCapable = matchMedia('(hover: hover)');
+new IntersectionObserver(entries => { railVisible = entries[0].isIntersecting; }).observe(categoryRail);
 function configureLoop() {
   categoryRail.querySelectorAll('[data-loop-copy]').forEach(node => node.remove());
   categoryRail.classList.remove('looping');
-  categoryRail.style.removeProperty('--rail-fraction');
+  categoryRail.style.removeProperty('--rail-offset');
+  usingTransform = false;
   if (reducedMotion.matches || originals.length < 2 || categoryRail.scrollWidth <= categoryRail.clientWidth + 1) return;
   categoryRail.classList.add('looping');
   const gap = parseFloat(getComputedStyle(categoryRail).gap) || 0;
@@ -310,7 +315,15 @@ function configureLoop() {
   }
   position = categoryRail.scrollLeft % loopWidth;
 }
-categoryRail.addEventListener('pointerdown', () => { touching = true; });
+categoryRail.addEventListener('pointerdown', () => {
+  touching = true;
+  if (usingTransform) {
+    categoryRail.scrollLeft = position;
+    categoryRail.style.setProperty('--rail-offset', '0px');
+    usingTransform = false;
+    if (drag) drag.left = categoryRail.scrollLeft;
+  }
+});
 window.addEventListener('pointerup', () => { touching = false; resumeAt = performance.now() + 1500; });
 window.addEventListener('pointercancel', () => { touching = false; resumeAt = performance.now() + 1500; });
 categoryRail.addEventListener('scroll', () => {
@@ -322,14 +335,17 @@ configureLoop();
 function animateRail(now) {
   const delta = lastTime === undefined ? 0 : Math.min(now - lastTime, 50);
   lastTime = now;
-  const bounds = categoryRail.getBoundingClientRect();
   const paused = !categoryRail.classList.contains('looping') || touching || drag || document.hidden ||
     dialog.open || reducedMotion.matches || now < resumeAt ||
-    (matchMedia('(hover: hover)').matches && categoryRail.matches(':hover')) || categoryRail.matches(':focus-within') || bounds.bottom <= 0 || bounds.top >= innerHeight;
+    (hoverCapable.matches && categoryRail.matches(':hover')) || categoryRail.matches(':focus-within') || !railVisible;
   if (!paused) {
-    position = (position + delta * .012) % loopWidth;
-    categoryRail.scrollLeft = position;
-    categoryRail.style.setProperty('--rail-fraction', `${position - categoryRail.scrollLeft}px`);
+    if (!usingTransform) {
+      position = categoryRail.scrollLeft % loopWidth;
+      categoryRail.scrollLeft = 0;
+      usingTransform = true;
+    }
+    position = (position + delta * .03) % loopWidth;
+    categoryRail.style.setProperty('--rail-offset', `${position}px`);
   }
   requestAnimationFrame(animateRail);
 }
