@@ -57,8 +57,20 @@ input:focus, select:focus, textarea:focus {
   padding-block: clamp(48px, 5vw, 70px);
   background: linear-gradient(110deg, #edf8ff 0%, #f4f8ff 48%, #fff1f8 100%);
 }
-.story { padding-block: clamp(52px, 5vw, 70px); }
-footer { padding-top: clamp(60px, 6vw, 80px); }
+.story {
+  padding-block: clamp(52px, 5vw, 70px);
+  background: linear-gradient(110deg, #edf8ff 0%, #f4f8ff 48%, #fff1f8 100%);
+}
+.story .mascot.crop {
+  background-image: url('assets/mascote-oficial.webp');
+  background-size: contain;
+  background-position: center bottom;
+  mix-blend-mode: normal;
+}
+footer {
+  padding-top: clamp(60px, 6vw, 80px);
+  background: linear-gradient(110deg, #edf8ff 0%, #f4f8ff 48%, #fff1f8 100%);
+}
 .categories > *, .story > *, footer > * { position: relative; }
 .category-layout h2 {
   text-align: center;

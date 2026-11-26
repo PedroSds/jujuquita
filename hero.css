@@ -2,7 +2,8 @@
   isolation: isolate;
   overflow: hidden;
   border-radius: 0;
-  background: linear-gradient(110deg, #bce5fb, #bde7fc);
+  background: radial-gradient(ellipse at 24% 18%, #e7f7ff 0%, transparent 52%),
+    linear-gradient(165deg, #c6eaff 0%, #b6def7 58%, #d7effe 100%);
 }
 .hero-inner {
   position: relative;
