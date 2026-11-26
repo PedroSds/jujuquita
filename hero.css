@@ -33,7 +33,7 @@
 }
 .hero-copy { position: relative; z-index: 2; }
 .hero-children { display: block; width: 100%; height: auto; }
-.hero-rainbow-intro, .hero-children-intro {
+ .hero-rainbow-intro, .hero-children-window {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -41,23 +41,18 @@
   opacity: 0;
   pointer-events: none;
 }
-.hero-children-intro { z-index: 1; }
+.hero-rainbow-intro { overflow: hidden; }
+.rainbow-band { fill: none; stroke-dasharray: 100; stroke-dashoffset: 100; }
+.rainbow-outer { stroke: #ffaac8; stroke-width: 210; }
+.rainbow-middle { stroke: #ffd1df; stroke-width: 140; }
+.rainbow-inner { stroke: #fff4e4; stroke-width: 70; }
+.hero-children-window { z-index: 1; overflow: hidden; }
+.hero-children-intro { display: block; width: 100%; height: 100%; }
 .hero-children { position: relative; z-index: 2; }
-@keyframes rainbow-reveal {
-  0% { clip-path: inset(0 100% 0 0); opacity: 0; }
-  8% { opacity: 1; }
-  62%, 84% { clip-path: inset(0); opacity: 1; }
-  100% { clip-path: inset(0); opacity: 0; }
-}
-@keyframes children-rise {
-  0%, 35% { opacity: 0; transform: translateY(28%); }
-  72%, 84% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(0); }
-}
-@keyframes hero-complete {
-  0%, 80% { opacity: 0; }
-  100% { opacity: 1; }
-}
+@keyframes rainbow-draw { to { stroke-dashoffset: 0; } }
+@keyframes intro-layer { 0%, 92% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes children-rise { from { transform: translateY(105%); } to { transform: translateY(0); } }
+@keyframes hero-complete { 0%, 92% { opacity: 0; } 100% { opacity: 1; } }
 .hero-heart {
   position: absolute;
   top: 8%;
