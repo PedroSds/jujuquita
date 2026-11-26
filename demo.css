@@ -97,7 +97,7 @@ footer {
 #categories::-webkit-scrollbar { display: none; }
 #categories.looping { scroll-snap-type: none; }
 #categories.looping .category:first-child, #categories.looping .category:last-child { margin-inline: 0; }
-#categories.looping .category { transform: translate3d(calc(-1 * var(--rail-offset, 0px)), 0, 0); will-change: transform; }
+#categories.looping .category { transform: translate3d(calc(-1 * var(--rail-offset, 0px)), 0, 0); transition: none; will-change: transform; }
 @media (hover: hover) { #categories.looping .category:hover { transform: translate3d(calc(-1 * var(--rail-offset, 0px)), -7px, 0); } }
 #categories .category {
   flex: 0 0 clamp(145px, 19vw, 190px);

@@ -295,6 +295,7 @@ let usingTransform = false;
 const hoverCapable = matchMedia('(hover: hover)');
 new IntersectionObserver(entries => { railVisible = entries[0].isIntersecting; }).observe(categoryRail);
 function configureLoop() {
+  const previousPosition = usingTransform ? position : categoryRail.scrollLeft;
   categoryRail.querySelectorAll('[data-loop-copy]').forEach(node => node.remove());
   categoryRail.classList.remove('looping');
   categoryRail.style.removeProperty('--rail-offset');
@@ -313,7 +314,8 @@ function configureLoop() {
       categoryRail.append(clone);
     }
   }
-  position = categoryRail.scrollLeft % loopWidth;
+  position = ((previousPosition % loopWidth) + loopWidth) % loopWidth;
+  categoryRail.scrollLeft = position;
 }
 categoryRail.addEventListener('pointerdown', () => {
   touching = true;
