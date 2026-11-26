@@ -38,21 +38,17 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  opacity: 0;
   pointer-events: none;
 }
 .hero-rainbow-intro { overflow: hidden; }
-.rainbow-band { fill: none; stroke-dasharray: 100; stroke-dashoffset: 100; }
+.rainbow-band { fill: none; stroke-dasharray: 100; stroke-dashoffset: 0; }
 .rainbow-outer { stroke: #ffaac8; stroke-width: 210; }
 .rainbow-middle { stroke: #ffd1df; stroke-width: 140; }
 .rainbow-inner { stroke: #fff4e4; stroke-width: 70; }
 .hero-children-window { z-index: 1; overflow: hidden; }
 .hero-children-intro { display: block; width: 100%; height: 100%; }
-.hero-children { position: relative; z-index: 2; }
-@keyframes rainbow-draw { to { stroke-dashoffset: 0; } }
-@keyframes intro-layer { 0%, 92% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes rainbow-draw { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
 @keyframes children-rise { from { transform: translateY(105%); } to { transform: translateY(0); } }
-@keyframes hero-complete { 0%, 92% { opacity: 0; } 100% { opacity: 1; } }
 .hero-heart {
   position: absolute;
   top: 8%;
