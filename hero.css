@@ -38,6 +38,7 @@
   width: 32%;
   height: auto;
   pointer-events: none;
+  aspect-ratio: 3 / 2;
 }
 .hero::after {
   content: "";
