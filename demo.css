@@ -196,3 +196,14 @@ header .brand { width: 170px; align-self: center; }
   footer .footer-grid a, footer .footer-grid button { text-align: center; margin-inline: auto; }
   footer .footer-grid > div:last-child { grid-column: 1 / -1; }
 }
+
+/* Mascote apoiada no botão da seção institucional. */
+.story-copy { flex: 1; }
+.story-action { display: flex; flex-direction: column; align-items: center; flex: 0 0 auto; margin-left: auto; }
+.story .story-action .mascot.crop { width: 160px; aspect-ratio: 1; margin-bottom: -7px; position: relative; z-index: 1; pointer-events: none; }
+.story .story-action .btn { margin: 0; }
+@media (max-width: 700px) {
+  .story .story-copy { flex: auto; width: 100%; }
+  .story .story-action { width: auto; margin: 0 auto; }
+  .story .story-action .mascot.crop { width: 140px; }
+}
