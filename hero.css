@@ -33,6 +33,23 @@
 }
 .hero-copy { position: relative; z-index: 2; }
 .hero-children { display: block; width: 100%; height: auto; }
+.hero-rainbow-intro {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+@keyframes rainbow-reveal {
+  0% { clip-path: inset(0 100% 0 0); opacity: 1; }
+  70% { clip-path: inset(0); opacity: 1; }
+  100% { clip-path: inset(0); opacity: 0; }
+}
+@keyframes children-reveal {
+  0%, 55% { opacity: 0; }
+  100% { opacity: 1; }
+}
 .hero-heart {
   position: absolute;
   top: 8%;
