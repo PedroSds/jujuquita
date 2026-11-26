@@ -208,3 +208,9 @@ header .brand { width: 170px; align-self: center; }
   .story .story-action { width: auto; margin: 0 auto; }
   .story .story-action .mascot.crop { width: 140px; }
 }
+
+@media (min-width: 701px) {
+  .story .story-inner { max-width: 860px; justify-content: center; gap: clamp(48px, 7vw, 100px); }
+  .story .story-copy { flex: 0 1 auto; }
+  .story .story-action { margin-left: 0; }
+}
