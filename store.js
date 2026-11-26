@@ -252,7 +252,8 @@ if (categoryRail) enableCategoryRail(categoryRail);
 function enableCategoryRail(categoryRail) {
 let drag = null;
 let suppressClick = false;
-let direction = 1;
+let touching = false;
+let resumeAt = 0;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 categoryRail.addEventListener('pointerdown', event => {
   suppressClick = false;
@@ -285,16 +286,50 @@ categoryRail.addEventListener('click', event => {
   event.preventDefault();
   event.stopPropagation();
 }, true);
-setInterval(() => {
-  const limit = categoryRail.scrollWidth - categoryRail.clientWidth;
-  if (limit < 2 || drag || document.hidden || dialog.open || reducedMotion.matches ||
-      categoryRail.matches(':hover, :focus-within')) return;
+const originals = [...categoryRail.children];
+let loopWidth = 0;
+let position = 0;
+let lastTime;
+function configureLoop() {
+  categoryRail.querySelectorAll('[data-loop-copy]').forEach(node => node.remove());
+  categoryRail.classList.remove('looping');
+  if (reducedMotion.matches || originals.length < 2 || categoryRail.scrollWidth <= categoryRail.clientWidth + 1) return;
+  categoryRail.classList.add('looping');
+  const gap = parseFloat(getComputedStyle(categoryRail).gap) || 0;
+  loopWidth = originals.reduce((sum, element) => sum + element.getBoundingClientRect().width + gap, 0);
+  const copies = Math.ceil(categoryRail.clientWidth / loopWidth) + 1;
+  for (let i = 0; i < copies; i++) {
+    for (const original of originals) {
+      const clone = original.cloneNode(true);
+      clone.dataset.loopCopy = '';
+      clone.setAttribute('aria-hidden', 'true');
+      clone.tabIndex = -1;
+      categoryRail.append(clone);
+    }
+  }
+  position = categoryRail.scrollLeft % loopWidth;
+}
+categoryRail.addEventListener('pointerdown', () => { touching = true; });
+window.addEventListener('pointerup', () => { touching = false; resumeAt = performance.now() + 1500; });
+window.addEventListener('pointercancel', () => { touching = false; resumeAt = performance.now() + 1500; });
+categoryRail.addEventListener('scroll', () => {
+  if (touching || drag || performance.now() < resumeAt) position = categoryRail.scrollLeft;
+}, {passive:true});
+new ResizeObserver(configureLoop).observe(categoryRail);
+reducedMotion.addEventListener('change', configureLoop);
+configureLoop();
+function animateRail(now) {
+  const delta = lastTime === undefined ? 0 : Math.min(now - lastTime, 50);
+  lastTime = now;
   const bounds = categoryRail.getBoundingClientRect();
-  if (bounds.bottom <= 0 || bounds.top >= window.innerHeight) return;
-  const position = categoryRail.scrollLeft;
-  if (position >= limit - 2) direction = -1;
-  else if (position <= 2) direction = 1;
-  const step = categoryRail.firstElementChild.getBoundingClientRect().width + 12;
-  categoryRail.scrollTo({left:Math.max(0, Math.min(limit, position + step * direction)), behavior:'smooth'});
-}, 3200);
+  const paused = !categoryRail.classList.contains('looping') || touching || drag || document.hidden ||
+    dialog.open || reducedMotion.matches || now < resumeAt ||
+    categoryRail.matches(':hover, :focus-within') || bounds.bottom <= 0 || bounds.top >= innerHeight;
+  if (!paused) {
+    position = (position + delta * .012) % loopWidth;
+    categoryRail.scrollLeft = position;
+  }
+  requestAnimationFrame(animateRail);
+}
+requestAnimationFrame(animateRail);
 }

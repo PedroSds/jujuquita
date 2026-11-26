@@ -33,7 +33,7 @@
 }
 .hero-copy { position: relative; z-index: 2; }
 .hero-children { display: block; width: 100%; height: auto; }
-.hero-rainbow-intro {
+.hero-rainbow-intro, .hero-children-intro {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -41,13 +41,20 @@
   opacity: 0;
   pointer-events: none;
 }
+.hero-children-intro { z-index: 1; }
+.hero-children { position: relative; z-index: 2; }
 @keyframes rainbow-reveal {
   0% { clip-path: inset(0 100% 0 0); opacity: 1; }
-  70% { clip-path: inset(0); opacity: 1; }
+  55%, 88% { clip-path: inset(0); opacity: 1; }
   100% { clip-path: inset(0); opacity: 0; }
 }
-@keyframes children-reveal {
-  0%, 55% { opacity: 0; }
+@keyframes children-rise {
+  0%, 30% { opacity: 0; transform: translateY(45%); }
+  65%, 88% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(0); }
+}
+@keyframes hero-complete {
+  0%, 82% { opacity: 0; }
   100% { opacity: 1; }
 }
 .hero-heart {
