@@ -218,14 +218,13 @@ header .brand { width: 170px; align-self: center; }
 /* Dúvidas com um toque do universo Jujuquita. */
 .faq { max-width: 1120px; padding-block: clamp(48px, 6vw, 80px); display: grid; grid-template-columns: minmax(220px, 330px) minmax(0, 1fr); gap: clamp(28px, 6vw, 82px); align-items: center; }
 .faq-intro { position: relative; }
-.faq-eyebrow { display: inline-block; color: #b42168; font-size: 11px; font-weight: 900; letter-spacing: .12em; margin-bottom: 12px; }
 .faq .faq-intro h2 { text-align: left; margin: 0 0 14px; }
 .faq-intro > p { max-width: 290px; line-height: 1.55; color: #536a8c; font-size: 15px; margin-bottom: 12px; }
 .faq-mascot { width: 190px; max-width: 100%; position: relative; margin: 0 auto; }
 .faq-mascot img { display: block; width: 100%; height: auto; }
-.faq-question { position: absolute; display: grid; place-items: center; border-radius: 50%; color: #d82c7d; background: #ffe2ef; font-weight: 1000; line-height: 1; }
-.faq-question-one { width: 42px; height: 42px; right: 3px; top: 7px; font-size: 25px; transform: rotate(14deg); }
-.faq-question-two { width: 29px; height: 29px; left: 2px; top: 47px; font-size: 18px; transform: rotate(-15deg); background: #e0f3ff; color: #3985cd; }
+.faq-question { position: absolute; color: #f44999; font-weight: 900; line-height: 1; }
+.faq-question-one { right: 12px; top: 12px; font-size: 28px; transform: rotate(8deg); }
+.faq-question-two { left: 12px; top: 48px; font-size: 21px; transform: rotate(-8deg); color: #5699f1; }
 .faq-questions { display: grid; gap: 12px; }
 .faq-questions details { border: 1px solid #eadfea; border-radius: 20px; background: #fffafd; padding: 0 20px; box-shadow: 0 7px 22px rgba(33, 59, 98, .04); }
 .faq-questions details[open] { background: #fff5fa; border-color: #f7c4dc; }
