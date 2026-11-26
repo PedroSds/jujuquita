@@ -174,9 +174,9 @@ header .brand { width: 170px; align-self: center; }
   .hero:not([data-motion-seen]) .hero-copy h1,.hero.motion-enter .hero-copy h1{animation:juju-entrance .48s ease-out both}
   .hero:not([data-motion-seen]) .hero-copy p,.hero.motion-enter .hero-copy p{animation:juju-entrance .48s .07s ease-out both}
   .hero:not([data-motion-seen]) .hero-copy .buttons,.hero.motion-enter .hero-copy .buttons{animation:juju-entrance .48s .12s ease-out both}
-  .hero:not([data-motion-seen]) .hero-rainbow-intro,.hero.motion-enter .hero-rainbow-intro{animation:rainbow-reveal 2.6s cubic-bezier(.22,1,.36,1) both}
-  .hero:not([data-motion-seen]) .hero-children-intro,.hero.motion-enter .hero-children-intro{animation:children-rise 2.6s cubic-bezier(.22,1,.36,1) both}
-  .hero:not([data-motion-seen]) .hero-children,.hero.motion-enter .hero-children{animation:hero-complete 2.6s ease-out both}
+  .hero:not([data-motion-seen]) .hero-rainbow-intro,.hero.motion-enter .hero-rainbow-intro{animation:rainbow-reveal 3.4s cubic-bezier(.4,0,.2,1) both}
+  .hero:not([data-motion-seen]) .hero-children-intro,.hero.motion-enter .hero-children-intro{animation:children-rise 3.4s cubic-bezier(.4,0,.2,1) both}
+  .hero:not([data-motion-seen]) .hero-children,.hero.motion-enter .hero-children{animation:hero-complete 3.4s ease-in-out both}
   .benefits.motion-enter>div,.categories.motion-enter h2,.highlights.motion-enter>h2,.story.motion-enter .story-inner>*,.faq.motion-enter>*,footer.motion-enter .footer-grid>div,footer.motion-enter .copyright,#collection-page.motion-enter>h1,#collection-page.motion-enter>.filters,#collection-page.motion-enter>.catalog-controls,#product-page.motion-enter .product-page-grid>*,#product-form>details.motion-enter{animation:juju-entrance .45s ease-out backwards}
   .benefits.motion-enter>div:nth-child(2),.story.motion-enter .story-inner>*:nth-child(2),footer.motion-enter .footer-grid>div:nth-child(2){animation-delay:.06s}
   .benefits.motion-enter>div:nth-child(3),.story.motion-enter .story-inner>*:nth-child(3),footer.motion-enter .footer-grid>div:nth-child(3){animation-delay:.12s}

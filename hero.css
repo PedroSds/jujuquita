@@ -44,17 +44,18 @@
 .hero-children-intro { z-index: 1; }
 .hero-children { position: relative; z-index: 2; }
 @keyframes rainbow-reveal {
-  0% { clip-path: inset(0 100% 0 0); opacity: 1; }
-  55%, 88% { clip-path: inset(0); opacity: 1; }
+  0% { clip-path: inset(0 100% 0 0); opacity: 0; }
+  8% { opacity: 1; }
+  62%, 84% { clip-path: inset(0); opacity: 1; }
   100% { clip-path: inset(0); opacity: 0; }
 }
 @keyframes children-rise {
-  0%, 30% { opacity: 0; transform: translateY(45%); }
-  65%, 88% { opacity: 1; transform: translateY(0); }
+  0%, 35% { opacity: 0; transform: translateY(28%); }
+  72%, 84% { opacity: 1; transform: translateY(0); }
   100% { opacity: 0; transform: translateY(0); }
 }
 @keyframes hero-complete {
-  0%, 82% { opacity: 0; }
+  0%, 80% { opacity: 0; }
   100% { opacity: 1; }
 }
 .hero-heart {
