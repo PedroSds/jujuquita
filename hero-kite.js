@@ -9,9 +9,9 @@
   const sail = new Path2D('M -3 -17 C -6 -52 -20 -77 -47 -71 C -78 -64 -92 -35 -81 4 C -74 32 -58 62 -39 82 C -4 67 34 50 61 27 C 87 6 93 -22 75 -35 C 55 -51 24 -45 -3 -17 Z');
   const seam = new Path2D('M -11 -4 C -13 -40 -25 -65 -45 -61 C -68 -55 -79 -31 -70 2 C -64 27 -49 55 -35 69 C -4 56 31 41 55 20 C 76 3 81 -18 68 -27 C 49 -40 19 -35 -11 -4 Z');
   const fabric = ctx.createLinearGradient(-65, -55, 66, 65);
-  fabric.addColorStop(0, '#345487');
-  fabric.addColorStop(.45, '#203d71');
-  fabric.addColorStop(1, '#10295a');
+  fabric.addColorStop(0, '#66a5f6');
+  fabric.addColorStop(.45, '#5699f1');
+  fabric.addColorStop(1, '#4588dd');
   const sheen = ctx.createRadialGradient(-48, -31, 0, -48, -31, 68);
   sheen.addColorStop(0, 'rgba(231,248,255,.18)');
   sheen.addColorStop(1, 'rgba(231,248,255,0)');
@@ -63,7 +63,7 @@
     ctx.fillStyle = sheen;
     ctx.fill(sail);
     ctx.lineWidth = 5;
-    ctx.strokeStyle = '#10295a';
+    ctx.strokeStyle = '#3679c8';
     ctx.stroke(sail);
     ctx.lineWidth = 3;
     ctx.strokeStyle = 'rgba(245,251,255,.9)';
